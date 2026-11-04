@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>이현도 · Frontend Engineer</title>
+    <meta name="description" content="이현도 · Frontend Engineer 포트폴리오" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #1c2024;
+        --muted: #5b6570;
+        --line: #e3e7eb;
+        --soft: #f6f8fa;
+        --accent: #2563eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14171a;
+          --fg: #e8ecef;
+          --muted: #9aa5b1;
+          --line: #2b3138;
+          --soft: #1b1f24;
+          --accent: #7aa2f7;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.75 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      }
+      nav.top {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      nav.top .in {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 12px 16px;
+        display: flex;
+        gap: 18px;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 14px;
+      }
+      nav.top a { color: var(--muted); text-decoration: none; }
+      nav.top a:hover { color: var(--accent); }
+      main { max-width: 880px; margin: 0 auto; padding: 40px 16px 96px; }
+      section + section { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+      h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 12px; }
+      h2 { font-size: 21px; margin: 40px 0 12px; letter-spacing: -0.01em; }
+      h3 { font-size: 17px; margin: 28px 0 8px; }
+      section > h1:first-child { margin-top: 0; }
+      a { color: var(--accent); }
+      blockquote { margin: 16px 0; padding: 4px 16px; border-left: 3px solid var(--accent); background: var(--soft); color: var(--muted); border-radius: 0 6px 6px 0; }
+      code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+      pre { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+      pre code { background: none; border: 0; padding: 0; }
+      .table { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+      th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+      th { background: var(--soft); font-weight: 600; }
+      hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+      .loading { color: var(--muted); }
+      footer { max-width: 880px; margin: 0 auto; padding: 0 16px 48px; color: var(--muted); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <nav class="top"><div class="in" id="nav"></div></nav>
+    <main id="content"><p class="loading">불러오는 중…</p></main>
+    <footer>이 페이지는 저장소의 마크다운 문서를 그대로 읽어 그립니다 · <a href="https://github.com/AzuraLight/portfolio">source</a></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script>
+      // 페이지에 이어 붙일 문서 — md 가 원본이고 이 목록은 순서만 정한다.
+      const DOCS = [
+        { id: 'about', label: '소개', path: 'README.md' },
+        { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md' },
+        { id: 'hrd-net-portal', label: 'HRD-Net', path: 'projects/company/hrd-net-portal.md' },
+        { id: 'mathcanvas', label: '매쓰캔버스', path: 'projects/company/mathcanvas.md' },
+        { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md' },
+        { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md' },
+      ]
+      const idByPath = Object.fromEntries(DOCS.map((d) => [d.path, d.id]))
+
+      /** 문서 사이 상대 링크(…/x.md)를 같은 페이지의 섹션 링크로 바꾼다. */
+      function rewriteLinks(root, basePath) {
+        const base = new URL(basePath, 'https://x/')
+        root.querySelectorAll('a[href]').forEach((a) => {
+          const href = a.getAttribute('href')
+          if (/^[a-z]+:/i.test(href) || href.startsWith('#')) {
+            if (/^https?:/i.test(href)) a.target = '_blank'
+            return
+          }
+          const path = new URL(href, base).pathname.slice(1)
+          const target = idByPath[path] ?? idByPath[path.replace(/\/$/, '') + '/README.md']
+          a.setAttribute('href', target ? '#' + target : 'https://github.com/AzuraLight/portfolio/tree/main/' + path)
+        })
+        root.querySelectorAll('table').forEach((t) => {
+          const wrap = document.createElement('div')
+          wrap.className = 'table'
+          t.replaceWith(wrap)
+          wrap.append(t)
+        })
+      }
+
+      async function render() {
+        const nav = document.getElementById('nav')
+        const content = document.getElementById('content')
+        const texts = await Promise.all(
+          DOCS.map((d) => fetch(d.path).then((r) => (r.ok ? r.text() : `> ${d.path} 를 불러오지 못했습니다.`))),
+        )
+        content.replaceChildren()
+        DOCS.forEach((d, i) => {
+          const section = document.createElement('section')
+          section.id = d.id
+          section.innerHTML = marked.parse(texts[i])
+          rewriteLinks(section, d.path)
+          content.append(section)
+          const link = document.createElement('a')
+          link.href = '#' + d.id
+          link.textContent = d.label
+          nav.append(link)
+        })
+        if (location.hash) document.querySelector(location.hash)?.scrollIntoView()
+      }
+      render()
+    </script>
+  </body>
