@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>이현도 · Frontend Engineer</title>
     <meta name="description" content="이현도 · Frontend Engineer 포트폴리오" />
+    <meta name="theme-color" content="#0a0b0f" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
     />
     <style>
-      html, body { margin: 0; height: 100%; }
+      html, body { margin: 0; height: 100%; background: #0a0b0f; }
       #root:empty::before { content: '불러오는 중…'; display: block; padding: 40px 16px; font-family: sans-serif; color: #888; }
+      @keyframes rise { from { opacity: 0; transform: translateY(0.6em); } to { opacity: 1; transform: none; } }
+      @keyframes wordUp { from { opacity: 0; transform: translateY(0.45em) rotate(2deg); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+      @keyframes slideIn { from { opacity: 0; translate: var(--from-x, 8%) 0; } to { opacity: 1; translate: 0 0; } }
+      @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-3%, 2%) scale(1.06); } }
+      .reveal { animation: rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+      .word { display: inline-block; animation: wordUp 760ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+      @media (prefers-reduced-motion: reduce) {
+        .reveal, .word, .stage-slide, .orb { animation: none !important; }
+      }
     </style>
   </head>
   <body>
@@ -25,28 +35,30 @@
       'use strict'
       const { createElement: h, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } = React
       const {
-        AppBar, Box, Card, CircularProgress, CssBaseline, Dialog, Divider, Drawer, IconButton,
+        AppBar, Box, CircularProgress, CssBaseline, Dialog, Divider, Drawer, IconButton,
         LinearProgress, List, ListItemButton, ListItemText, ListSubheader, Stack, SvgIcon, ThemeProvider,
         Toolbar, Tooltip, Typography, createTheme, useMediaQuery,
       } = MaterialUI
 
       // ═════════════════════════ 설정 ═════════════════════════
 
-      /** 챕터가 될 문서. md 가 원본이고 이 목록은 순서 · 챕터 이름 · 강조색만 정한다. */
+      /** 챕터가 될 문서. md 가 원본이고 이 목록은 순서 · 챕터 이름 · 강조색(다크 네온 / 라이트 진한 색)만 정한다. */
       const DOCS = [
-        { id: 'about', label: '소개', path: 'README.md', accent: '#1976d2' },
-        { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md', accent: '#3f51b5' },
-        { id: 'hrd-net-portal', label: 'HRD-Net', path: 'projects/company/hrd-net-portal.md', accent: '#00897b' },
-        { id: 'mathcanvas', label: '매쓰캔버스', path: 'projects/company/mathcanvas.md', accent: '#1e88e5' },
-        { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md', accent: '#f57c00' },
-        { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md', accent: '#7b1fa2' },
+        { id: 'about', label: '소개', path: 'README.md', accent: { dark: '#5b9dff', light: '#1d5fd6' } },
+        { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md', accent: { dark: '#b8f35c', light: '#4d7c0f' } },
+        { id: 'hrd-net-portal', label: 'HRD-Net', path: 'projects/company/hrd-net-portal.md', accent: { dark: '#2ee6d6', light: '#0f766e' } },
+        { id: 'mathcanvas', label: '매쓰캔버스', path: 'projects/company/mathcanvas.md', accent: { dark: '#a98bff', light: '#6d28d9' } },
+        { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md', accent: { dark: '#ffa94d', light: '#c2410c' } },
+        { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md', accent: { dark: '#ff6fb5', light: '#be185d' } },
       ]
+      const ACCENT = 'var(--accent)'
       const REPO_URL = 'https://github.com/AzuraLight/portfolio'
       const OWNER = '이현도'
-      const STAGE = { width: 1920, height: 1080, margin: 0.04 }
+      const STAGE = { width: 1920, height: 1080, margin: 0.035 }
       /** 한 장에 담는 최대 개수 — 넘치면 다음 장으로 나눈다 (one idea per slide). */
       const CHUNK = { cards: 6, bullets: 5, rows: 6 }
       const STORAGE_KEY = { mode: 'mode', view: 'view' }
+      const DEFAULT_MODE = 'dark'
       const KEYS = {
         next: ['ArrowRight', 'ArrowDown', 'PageDown', ' '],
         prev: ['ArrowLeft', 'ArrowUp', 'PageUp'],
@@ -55,17 +67,39 @@
         overview: ['Escape', 'o'],
       }
       const SWIPE_MIN_PX = 50
+      const FLOW_TRACK_ID = 'flow-track'
+      const THUMB_WIDTH = 288
+      const STAGE_PADDING_Y = 104
+      /** 무대 안쪽 높이 — 표지 · 챕터가 세로를 꽉 채우는 기준. */
+      const STAGE_INNER_HEIGHT = STAGE.height - STAGE_PADDING_Y * 2
+      /** 이 글자 수를 넘는 표지 제목은 작게 — 한 화면 안에서 두세 줄로 끝나게. */
+      const LONG_COVER_TITLE = 18
 
       /** 화면 방식별 글자 크기 · 여백. 발표 보기는 1920 무대 기준 px, 읽기 보기는 기기 px. */
       const TOKENS = {
         present: {
-          pad: '96px 128px', gap: 40, eyebrow: 26, coverTitle: 128, title: 76, lead: 36, body: 32,
-          cardTitle: 34, cardText: 26, table: 26, code: 24, chapterNo: 280, columns: 3, radius: 28,
+          pad: `${STAGE_PADDING_Y}px 136px`, gap: 40, eyebrow: 24, coverTitle: 168, title: 92, lead: 36, body: 34,
+          cardTitle: 38, cardText: 25, bigValue: 44, table: 26, code: 25, chapterNo: 420, bentoColumns: 4, radius: 32,
+          heroHeight: STAGE_INNER_HEIGHT,
         },
         flow: {
-          pad: '28px 20px', gap: 14, eyebrow: 12, coverTitle: 36, title: 26, lead: 17, body: 16,
-          cardTitle: 17, cardText: 15, table: 14, code: 12, chapterNo: 72, columns: 1, radius: 18,
+          pad: '28px 20px', gap: 14, eyebrow: 11, coverTitle: 44, title: 30, lead: 16, body: 16,
+          cardTitle: 17, cardText: 14, bigValue: 18, table: 14, code: 12, chapterNo: 120, bentoColumns: 2, radius: 20,
+          heroHeight: '100%',
         },
+      }
+
+      /**
+       * 벤토 칸 크기 [열, 행]. 첫 칸이 주인공이고, 남은 칸이 줄을 꽉 채우도록 개수별로 정해 둔다.
+       * 4열(발표) 기준이며, 2열(읽기)은 bentoSpansForTwoColumns 가 따로 만든다.
+       */
+      const BENTO_SPANS_4 = {
+        1: [[4, 1]],
+        2: [[2, 2], [2, 2]],
+        3: [[2, 2], [2, 1], [2, 1]],
+        4: [[2, 2], [2, 1], [1, 1], [1, 1]],
+        5: [[2, 2], [1, 1], [1, 1], [1, 1], [1, 1]],
+        6: [[2, 1], [2, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
       }
 
       // ═════════════════════════ helper ═════════════════════════
@@ -112,6 +146,10 @@
         return DOCS.find((d) => d.path === path || d.path === path.replace(/\/$/, '') + '/README.md') ?? null
       }
 
+      function findDocById(id) {
+        return DOCS.find((d) => d.id === id)
+      }
+
       function chapterNumber(doc) {
         return String(DOCS.indexOf(doc)).padStart(2, '0')
       }
@@ -120,12 +158,38 @@
         return total > 1 ? `${index + 1} / ${total}` : ''
       }
 
+      function twoDigits(n) {
+        return String(n).padStart(2, '0')
+      }
+
       function isTypingTarget(element) {
         return Boolean(element?.closest?.('input, textarea, [contenteditable="true"]'))
       }
 
       function matchesKey(event, group) {
         return KEYS[group].includes(event.key)
+      }
+
+      /** `--accent` 같은 색을 투명도와 섞는다 — CSS 변수 색에도 쓸 수 있게 color-mix 를 쓴다. */
+      function tint(color, percent) {
+        return `color-mix(in srgb, ${color} ${percent}%, transparent)`
+      }
+
+      /** 슬라이드 루트에 그 챕터 강조색을 CSS 변수로 건다 — 아래 요소는 ACCENT 로만 쓴다. */
+      function accentVars(chapterId, mode) {
+        return { '--accent': findDocById(chapterId).accent[mode] }
+      }
+
+      function revealProps(i) {
+        return { className: 'reveal', style: { '--i': i } }
+      }
+
+      function bentoSpansForTwoColumns(count) {
+        return Array.from({ length: count }, (_, i) => (i === 0 || (count % 2 === 0 && i === count - 1) ? [2, 1] : [1, 1]))
+      }
+
+      function bentoSpans(count, columns) {
+        return columns === 4 ? BENTO_SPANS_4[clamp(count, 1, 6)] : bentoSpansForTwoColumns(count)
       }
 
       // ═════════════════════════ markdown → DOM 정리 ═════════════════════════
@@ -218,14 +282,11 @@
       }
 
       function baseSlide(context, extra) {
-        return {
-          chapterId: context.doc.id,
-          chapterLabel: context.doc.label,
-          accent: context.doc.accent,
-          eyebrow: context.eyebrow,
-          title: context.title,
-          ...extra,
-        }
+        return { chapterId: context.doc.id, chapterLabel: context.doc.label, eyebrow: context.eyebrow, title: context.title, ...extra }
+      }
+
+      function leadAndCaption(block, i, total) {
+        return { lead: i === 0 ? outerHtml(block.lead) : '', caption: i === total - 1 ? outerHtml(block.caption) : '' }
       }
 
       function tableToSlides(block, context) {
@@ -233,8 +294,7 @@
         const rowChunks = chunk(tableRows(block.node).map(rowCells), CHUNK.rows)
         const layout = isKeyValueTable(block.node) ? 'facts' : 'table'
         return rowChunks.map((rows, i) => baseSlide(context, {
-          layout, headers, rows, page: chunkLabel(i, rowChunks.length),
-          lead: i === 0 ? outerHtml(block.lead) : '', caption: i === rowChunks.length - 1 ? outerHtml(block.caption) : '',
+          layout, headers, rows, page: chunkLabel(i, rowChunks.length), ...leadAndCaption(block, i, rowChunks.length),
         }))
       }
 
@@ -243,17 +303,12 @@
         const items = elementChildren(block.node).map((li) => (cardMode ? listItemToCard(li) : { title: '', html: li.innerHTML }))
         const itemChunks = chunk(items, cardMode ? CHUNK.cards : CHUNK.bullets)
         return itemChunks.map((part, i) => baseSlide(context, {
-          layout: cardMode ? 'cards' : 'bullets', items: part, ordered: block.node.tagName === 'OL',
-          page: chunkLabel(i, itemChunks.length),
-          lead: i === 0 ? outerHtml(block.lead) : '', caption: i === itemChunks.length - 1 ? outerHtml(block.caption) : '',
+          layout: cardMode ? 'cards' : 'bullets', items: part, page: chunkLabel(i, itemChunks.length), ...leadAndCaption(block, i, itemChunks.length),
         }))
       }
 
       function codeToSlides(block, context) {
-        return [baseSlide(context, {
-          layout: 'code', code: block.node.textContent, page: '',
-          lead: outerHtml(block.lead), caption: outerHtml(block.caption),
-        })]
+        return [baseSlide(context, { layout: 'code', code: block.node.textContent, page: '', ...leadAndCaption(block, 0, 1) })]
       }
 
       function proseToSlides(block, context) {
@@ -288,8 +343,8 @@
         const metaNode = firstNodeOf(group.nodes, ['UL'])
         const noteNodes = group.nodes.filter((node) => node.tagName === 'BLOCKQUOTE' && node !== leadNode)
         return {
-          layout: 'cover', chapterId: doc.id, chapterLabel: doc.label, accent: doc.accent,
-          eyebrow: doc.id === 'about' ? 'Portfolio' : doc.label,
+          layout: 'cover', chapterId: doc.id, chapterLabel: doc.label,
+          eyebrow: doc.id === 'about' ? 'Portfolio 2026' : doc.label,
           title: group.heading.textContent.trim(),
           lead: leadNode?.innerHTML ?? '',
           rows: factsNode ? tableRows(factsNode).map(rowCells) : [],
@@ -300,7 +355,7 @@
       }
 
       function chapterSlide(doc) {
-        return { layout: 'chapter', chapterId: doc.id, chapterLabel: doc.label, accent: doc.accent, number: chapterNumber(doc), title: doc.label, page: '' }
+        return { layout: 'chapter', chapterId: doc.id, chapterLabel: doc.label, number: chapterNumber(doc), title: doc.label, page: '' }
       }
 
       function documentToSlides(markdown, doc) {
@@ -335,7 +390,7 @@
         slideScrolledInto: (index) => ({ type: ActionType.SlideScrolledInto, payload: index }),
         overviewToggled: (open) => ({ type: ActionType.OverviewToggled, payload: open }),
         drawerToggled: (open) => ({ type: ActionType.DrawerToggled, payload: open }),
-        modeToggled: (current) => ({ type: ActionType.ModeToggled, payload: current }),
+        modeToggled: () => ({ type: ActionType.ModeToggled }),
         viewToggled: (current) => ({ type: ActionType.ViewToggled, payload: current }),
       }
 
@@ -349,7 +404,7 @@
         index: readInitialIndex(),
         overviewOpen: false,
         drawerOpen: false,
-        mode: readStorage(STORAGE_KEY.mode),
+        mode: readStorage(STORAGE_KEY.mode) ?? DEFAULT_MODE,
         view: readStorage(STORAGE_KEY.view),
       }
 
@@ -373,7 +428,7 @@
           case ActionType.DrawerToggled:
             return { ...state, drawerOpen: action.payload }
           case ActionType.ModeToggled:
-            return { ...state, mode: action.payload === 'dark' ? 'light' : 'dark' }
+            return { ...state, mode: state.mode === 'dark' ? 'light' : 'dark' }
           case ActionType.ViewToggled:
             return { ...state, view: action.payload === 'present' ? 'flow' : 'present' }
           default:
@@ -408,7 +463,7 @@
       const selectIndex = (state) => state.index
       const selectOverviewOpen = (state) => state.overviewOpen
       const selectDrawerOpen = (state) => state.drawerOpen
-      const selectStoredMode = (state) => state.mode
+      const selectMode = (state) => state.mode
       const selectStoredView = (state) => state.view
 
       // ═════════════════════════ 부수효과 (결과는 action 으로만 store 에 넣는다) ═════════════════════════
@@ -426,13 +481,17 @@
       function persistPreferences() {
         return store.subscribe(() => {
           const { mode, view } = store.getState()
-          if (mode) writeStorage(STORAGE_KEY.mode, mode)
+          writeStorage(STORAGE_KEY.mode, mode)
           if (view) writeStorage(STORAGE_KEY.view, view)
         })
       }
 
       function syncHashWithIndex() {
         return store.subscribe(() => history.replaceState(null, '', '#/' + store.getState().index))
+      }
+
+      function syncThemeColor(mode) {
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', mode === 'dark' ? '#0a0b0f' : '#f3f4f7')
       }
 
       function firstIndexOfChapter(chapterId) {
@@ -488,8 +547,6 @@
         return () => document.removeEventListener('click', handleChapterLinkClick)
       }
 
-      const FLOW_TRACK_ID = 'flow-track'
-
       /** 읽기 보기: 가로 트랙에서 화면을 차지한 카드를 현재 위치로 알린다. */
       function observeFlowCards() {
         const observer = new IntersectionObserver(
@@ -512,12 +569,6 @@
 
       // ═════════════════════════ 테마 · 보기 결정 ═════════════════════════
 
-      function useResolvedMode() {
-        const stored = useSelector(selectStoredMode)
-        const system = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light'
-        return stored ?? system
-      }
-
       /** reveal.js 처럼 좁거나 세로인 화면은 읽기 보기로 자동 전환한다. 사용자가 고르면 그것을 따른다. */
       function useResolvedView() {
         const stored = useSelector(selectStoredView)
@@ -525,14 +576,15 @@
         return stored ?? (compact ? 'flow' : 'present')
       }
 
+      const PALETTES = {
+        dark: { background: { default: '#0a0b0f', paper: '#13151c' }, text: { primary: '#f4f6fb', secondary: '#a3abbd' }, divider: 'rgba(255,255,255,0.09)' },
+        light: { background: { default: '#f3f4f7', paper: '#ffffff' }, text: { primary: '#0d1017', secondary: '#525a6b' }, divider: 'rgba(13,16,23,0.09)' },
+      }
+
       function buildTheme(mode) {
         return createTheme({
-          palette: {
-            mode,
-            primary: { main: mode === 'dark' ? '#90caf9' : '#1976d2' },
-            background: mode === 'dark' ? { default: '#0b0e12', paper: '#151a21' } : { default: '#eef1f5', paper: '#ffffff' },
-          },
-          typography: { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif" },
+          palette: { mode, primary: { main: mode === 'dark' ? '#5b9dff' : '#1d5fd6' }, ...PALETTES[mode] },
+          typography: { fontFamily: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif" },
           shape: { borderRadius: 14 },
         })
       }
@@ -557,7 +609,9 @@
           const content = contentRef.current
           if (!enabled || !box || !content) return
           content.style.transform = ''
-          const ratio = Math.min(1, box.clientHeight / content.scrollHeight)
+          const style = getComputedStyle(box)
+          const available = box.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+          const ratio = Math.min(1, available / content.scrollHeight)
           content.style.transform = ratio < 1 ? `scale(${ratio})` : ''
         })
         return { boxRef, contentRef }
@@ -577,171 +631,266 @@
         GitHub: createIcon('M12 1.27a11 11 0 0 0-3.48 21.46c.55.09.73-.24.73-.53v-1.85c-3.03.66-3.67-1.46-3.67-1.46-.5-1.26-1.21-1.6-1.21-1.6-1-.68.07-.66.07-.66 1.1.07 1.68 1.13 1.68 1.13.98 1.67 2.56 1.19 3.19.91.1-.71.38-1.19.69-1.46-2.42-.28-4.97-1.21-4.97-5.38 0-1.19.42-2.16 1.12-2.92-.11-.28-.49-1.39.11-2.88 0 0 .92-.29 3 1.12a10.4 10.4 0 0 1 5.5 0c2.08-1.41 3-1.12 3-1.12.6 1.5.22 2.6.11 2.88.7.76 1.12 1.73 1.12 2.92 0 4.18-2.56 5.1-4.99 5.37.39.34.74 1 .74 2.02v3c0 .29.18.63.74.52A11 11 0 0 0 12 1.27'),
       }
 
-      // ═════════════════════════ 슬라이드 레이아웃 (데이터 + 토큰을 받아 그리기만 한다) ═════════════════════════
+      // ═════════════════════════ 표면 (깊이 · 레이어) ═════════════════════════
 
-      function richTextSx(t, accent) {
+      /** 유리 패널: 반투명 바탕 + 흐림 + 가는 테두리 + 위쪽 빛 반사. */
+      function glassSx(tk) {
         return {
-          '& p': { m: 0 }, '& p + p': { mt: 1 },
-          '& a': { color: accent, textUnderlineOffset: '0.18em', overflowWrap: 'anywhere' },
-          '& strong': { fontWeight: 700 },
-          '& code': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.86em', px: '0.3em', borderRadius: '0.3em', bgcolor: 'action.selected' },
-          '& ul, & ol': { m: 0, mt: '0.4em', pl: '1.2em' }, '& li + li': { mt: '0.25em' },
+          position: 'relative', borderRadius: `${tk.radius}px`, overflow: 'hidden',
+          bgcolor: (t) => tint(t.palette.background.paper, t.palette.mode === 'dark' ? 62 : 78),
+          backdropFilter: 'blur(18px) saturate(1.2)',
+          border: '1px solid', borderColor: 'divider',
+          boxShadow: (t) => t.palette.mode === 'dark'
+            ? 'inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 18px 40px rgba(15,23,42,0.08)',
         }
       }
 
-      function Html({ html, sx, component = 'div' }) {
-        return html ? h(Box, { component, sx, dangerouslySetInnerHTML: { __html: html } }) : null
+      /** 슬라이드 바탕: 메시 그라데이션 두 겹 + 점 격자. 표지 · 챕터는 빛을 더 크게. */
+      function slideBackgroundSx(slide) {
+        const isHero = slide.layout === 'cover' || slide.layout === 'chapter'
+        return {
+          bgcolor: 'background.default',
+          backgroundImage: (t) => [
+            `radial-gradient(${isHero ? '55% 70%' : '38% 45%'} at 88% 6%, ${tint(ACCENT, isHero ? 34 : 16)}, transparent 70%)`,
+            `radial-gradient(${isHero ? '45% 55%' : '30% 40%'} at 4% 104%, ${tint(ACCENT, isHero ? 18 : 8)}, transparent 70%)`,
+            `radial-gradient(${tint(t.palette.text.primary, t.palette.mode === 'dark' ? 7 : 9)} 1px, transparent 1.4px)`,
+          ].join(', '),
+          backgroundSize: 'auto, auto, 28px 28px',
+        }
+      }
+
+      function Orb({ size, sx }) {
+        return h(Box, {
+          className: 'orb', 'aria-hidden': true,
+          sx: {
+            position: 'absolute', width: size, height: size, borderRadius: '50%', pointerEvents: 'none',
+            background: `conic-gradient(from 210deg, ${tint(ACCENT, 70)}, transparent 40%, ${tint(ACCENT, 35)} 70%, transparent)`,
+            filter: 'blur(60px)', opacity: 0.55, animation: 'drift 14s ease-in-out infinite', ...sx,
+          },
+        })
+      }
+
+      // ═════════════════════════ 슬라이드 레이아웃 (데이터 + 토큰을 받아 그리기만 한다) ═════════════════════════
+
+      function richTextSx() {
+        return {
+          '& p': { m: 0 }, '& p + p': { mt: 1 },
+          '& a': { color: ACCENT, textDecorationColor: tint(ACCENT, 45), textUnderlineOffset: '0.2em', overflowWrap: 'anywhere' },
+          '& strong': { fontWeight: 700, color: 'text.primary' },
+          '& code': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.84em', px: '0.35em', py: '0.05em', borderRadius: '0.35em', bgcolor: tint(ACCENT, 14), color: 'text.primary' },
+          '& ul, & ol': { m: 0, mt: '0.4em', pl: '1.2em' }, '& li + li': { mt: '0.25em' }, '& li::marker': { color: ACCENT },
+        }
+      }
+
+      function Html({ html, sx, component = 'div', ...rest }) {
+        return html ? h(Box, { component, sx, dangerouslySetInnerHTML: { __html: html }, ...rest }) : null
       }
 
       function Eyebrow({ slide, tk }) {
-        return h(Stack, { direction: 'row', alignItems: 'center', spacing: tk.gap / 40 + 0.5, sx: { mb: `${tk.gap * 0.6}px` } },
-          h(Box, { sx: { width: tk.eyebrow * 1.6, height: Math.max(3, tk.eyebrow / 6), borderRadius: 9, bgcolor: slide.accent } }),
-          h(Typography, { sx: { fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: slide.accent } },
+        return h(Stack, { direction: 'row', alignItems: 'center', spacing: 1, sx: { mb: `${tk.gap * 0.55}px` }, ...revealProps(0) },
+          h(Box, { component: 'span', sx: {
+            display: 'inline-flex', alignItems: 'center', gap: '0.55em', px: '0.9em', py: '0.4em', borderRadius: 99,
+            fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: ACCENT, bgcolor: tint(ACCENT, 12), border: '1px solid', borderColor: tint(ACCENT, 30),
+          } },
+            h(Box, { component: 'span', sx: { width: '0.5em', height: '0.5em', borderRadius: '50%', bgcolor: ACCENT, boxShadow: `0 0 12px ${ACCENT}` } }),
             [slide.eyebrow, slide.page].filter(Boolean).join('  ·  ')))
       }
 
       function SlideTitle({ slide, tk }) {
-        return h(Typography, { component: 'h2', sx: { fontSize: tk.title, fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.15, mb: `${tk.gap * 0.8}px` } }, slide.title)
+        return h(Typography, {
+          component: 'h2', ...revealProps(1),
+          sx: { fontSize: tk.title, fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.08, mb: `${tk.gap * 0.7}px`, fontVariationSettings: '"wght" 820' },
+        }, slide.title)
       }
 
-      function Lead({ html, tk, accent }) {
-        return h(Html, { html, sx: (t) => ({ ...richTextSx(t, accent), fontSize: tk.lead, color: 'text.secondary', lineHeight: 1.6, mb: `${tk.gap}px`, maxWidth: '62em' }) })
+      function Lead({ html, tk, i = 2 }) {
+        return h(Html, { html, ...revealProps(i), sx: { ...richTextSx(), fontSize: tk.lead, color: 'text.secondary', lineHeight: 1.55, mb: `${tk.gap}px`, maxWidth: '52em' } })
       }
 
-      function Caption({ html, tk, accent }) {
-        return h(Html, { html, sx: (t) => ({ ...richTextSx(t, accent), fontSize: tk.cardText, color: 'text.secondary', mt: `${tk.gap * 0.8}px` }) })
+      function Caption({ html, tk }) {
+        return h(Html, { html, ...revealProps(9), sx: { ...richTextSx(), fontSize: tk.cardText, color: 'text.secondary', mt: `${tk.gap * 0.8}px` } })
       }
 
       function SlideHeading({ slide, tk }) {
-        return h(Fragment, null, h(Eyebrow, { slide, tk }), h(SlideTitle, { slide, tk }), h(Lead, { html: slide.lead, tk, accent: slide.accent }))
+        return h(Fragment, null, h(Eyebrow, { slide, tk }), h(SlideTitle, { slide, tk }), h(Lead, { html: slide.lead, tk }))
+      }
+
+      /** 움직이는 타이포는 표지 제목에만 — 실제 글을 단어 단위 span 으로 나눠 차례로 올린다. */
+      function KineticTitle({ text, sx }) {
+        return h(Typography, { component: 'h1', 'aria-label': text, sx },
+          text.split(' ').map((word, i) => h(Fragment, { key: i },
+            h(Box, { component: 'span', className: 'word', 'aria-hidden': true, style: { '--i': i } }, word), ' ')))
       }
 
       function ChapterLayout({ slide, tk }) {
-        return h(Box, { sx: { height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
-          h(Typography, { sx: { fontSize: tk.chapterNo, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.06em', color: slide.accent, opacity: 0.9 } }, slide.number),
-          h(Typography, { component: 'h2', sx: { fontSize: tk.coverTitle * 0.75, fontWeight: 800, letterSpacing: '-0.03em', mt: `${tk.gap * 0.5}px` } }, slide.title))
+        return h(Box, { sx: { height: tk.heroHeight, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' } },
+          h(Typography, {
+            'aria-hidden': true, className: 'reveal',
+            sx: {
+              position: 'absolute', right: '-0.04em', top: '-0.18em', fontSize: tk.chapterNo, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.06em',
+              color: 'transparent', WebkitTextStroke: `${Math.max(1.5, tk.chapterNo / 140)}px ${tint(ACCENT, 70)}`,
+            },
+          }, slide.number),
+          h(Typography, { ...revealProps(1), sx: { fontSize: tk.eyebrow * 1.1, fontWeight: 700, letterSpacing: '0.2em', color: ACCENT, mb: `${tk.gap * 0.3}px` } }, `CHAPTER ${slide.number}`),
+          h(KineticTitle, { text: slide.title, sx: { fontSize: tk.coverTitle, fontWeight: 900, letterSpacing: '-0.045em', lineHeight: 1 } }))
       }
 
-      function FactTiles({ rows, tk, accent }) {
-        const columns = tk.columns === 1 ? 2 : Math.min(rows.length, 4)
-        return h(Box, { sx: { display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: `${tk.gap * 0.6}px` } },
-          rows.map(([key, value], i) => h(Card, { key: i, variant: 'outlined', sx: { p: `${tk.gap * 0.6}px`, borderRadius: `${tk.radius * 0.6}px`, bgcolor: 'background.paper' } },
-            h(Html, { html: key, sx: { fontSize: tk.eyebrow, fontWeight: 700, color: accent, mb: 0.5, letterSpacing: '0.04em' } }),
-            h(Html, { html: value, sx: (t) => ({ ...richTextSx(t, accent), fontSize: tk.cardText, lineHeight: 1.5 }) }))))
+      function BentoGrid({ count, tk, children }) {
+        const spans = bentoSpans(count, tk.bentoColumns)
+        return h(Box, {
+          sx: {
+            display: 'grid', gridTemplateColumns: `repeat(${tk.bentoColumns}, minmax(0, 1fr))`, gridAutoRows: 'minmax(min-content, 1fr)',
+            gridAutoFlow: 'dense', gap: `${tk.gap * 0.5}px`,
+          },
+        }, React.Children.map(children, (child, i) => h(Box, {
+          key: i, ...revealProps(i + 3),
+          sx: { gridColumn: `span ${spans[i][0]}`, gridRow: `span ${spans[i][1]}`, display: 'flex', minWidth: 0 },
+        }, child)))
+      }
+
+      /** 벤토 한 칸. 주인공 칸은 번호를 위에, 내용을 아래에 붙여 넓은 칸이 비어 보이지 않게 한다. */
+      function BentoCell({ tk, hero, index, children }) {
+        return h(Box, {
+          sx: {
+            ...glassSx(tk), flex: 1, p: `${tk.gap * (hero ? 0.9 : 0.7)}px`, display: 'flex', flexDirection: 'column',
+            justifyContent: hero ? 'space-between' : 'flex-start', gap: `${tk.gap * 0.25}px`,
+            ...(hero && { background: (t) => `linear-gradient(150deg, ${tint(ACCENT, 24)}, ${tint(t.palette.background.paper, 70)} 70%)`, borderColor: tint(ACCENT, 35) }),
+          },
+        },
+          h(Typography, { sx: { fontSize: hero ? tk.eyebrow * 2.4 : tk.eyebrow, fontWeight: hero ? 900 : 700, lineHeight: 1, color: ACCENT, fontVariantNumeric: 'tabular-nums', letterSpacing: hero ? '-0.04em' : '0.08em', opacity: hero ? 0.9 : 1 } }, twoDigits(index + 1)),
+          h(Box, { sx: { display: 'flex', flexDirection: 'column', gap: `${tk.gap * 0.25}px` } }, children))
+      }
+
+      function FactTiles({ rows, tk }) {
+        return h(BentoGrid, { count: rows.length, tk },
+          rows.map(([key, value], i) => h(BentoCell, { key: i, tk, hero: i === 0, index: i },
+            h(Html, { html: key, sx: { fontSize: tk.cardText, fontWeight: 600, color: 'text.secondary' } }),
+            h(Html, { html: value, sx: { ...richTextSx(), fontSize: i === 0 ? tk.bigValue : tk.cardTitle * 0.78, fontWeight: i === 0 ? 800 : 600, lineHeight: 1.3, letterSpacing: '-0.015em' } }))))
+      }
+
+      /** 표지의 사실 줄: 같은 폭 칸을 나란히 — 위계 없이 한눈에 훑는 정보다. */
+      function FactStrip({ rows, tk }) {
+        const columns = Math.min(rows.length, tk.bentoColumns)
+        return h(Box, {
+          ...revealProps(6),
+          sx: { ...glassSx(tk), display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` },
+        }, rows.map(([key, value], i) => h(Box, {
+          key: i,
+          sx: { p: `${tk.gap * 0.6}px`, borderLeft: i % columns === 0 ? 0 : '1px solid', borderTop: i >= columns ? '1px solid' : 0, borderColor: 'divider' },
+        },
+          h(Html, { html: key, sx: { fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.1em', color: ACCENT, mb: `${tk.gap * 0.2}px` } }),
+          h(Html, { html: value, sx: { ...richTextSx(), fontSize: tk.cardText, lineHeight: 1.5 } }))))
+      }
+
+      function coverTitleSize(title, tk) {
+        return title.length > LONG_COVER_TITLE ? tk.coverTitle * 0.6 : tk.coverTitle
       }
 
       function CoverLayout({ slide, tk }) {
-        return h(Box, { sx: { height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
+        return h(Box, { sx: { minHeight: tk.heroHeight, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' } },
           h(Eyebrow, { slide, tk }),
-          h(Typography, {
-            component: 'h1',
+          h(KineticTitle, {
+            text: slide.title,
             sx: {
-              fontSize: tk.coverTitle, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, mb: `${tk.gap}px`,
-              background: (t) => `linear-gradient(100deg, ${t.palette.text.primary} 30%, ${slide.accent})`,
-              WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+              fontSize: coverTitleSize(slide.title, tk), fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 1.02, mb: `${tk.gap * 0.9}px`,
+              '& .word:last-of-type': { color: ACCENT },
             },
-          }, slide.title),
-          h(Lead, { html: slide.lead, tk, accent: slide.accent }),
-          slide.meta.length > 0 && h(Stack, { direction: 'row', flexWrap: 'wrap', useFlexGap: true, spacing: 1, sx: { mb: `${tk.gap}px` } },
-            slide.meta.map((html, i) => h(Html, { key: i, html, sx: (t) => ({ ...richTextSx(t, slide.accent), fontSize: tk.cardText, px: '0.9em', py: '0.35em', borderRadius: 99, border: 1, borderColor: 'divider' }) }))),
-          slide.rows.length > 0 && h(FactTiles, { rows: slide.rows, tk, accent: slide.accent }),
-          h(Caption, { html: slide.note, tk, accent: slide.accent }))
-      }
-
-      function cardColumns(count, tk) {
-        if (tk.columns === 1) return 1
-        return count === 4 ? 2 : Math.min(count, tk.columns)
+          }),
+          h(Lead, { html: slide.lead, tk, i: 4 }),
+          slide.meta.length > 0 && h(Stack, { direction: 'row', flexWrap: 'wrap', useFlexGap: true, spacing: 1, sx: { mb: `${tk.gap}px` }, ...revealProps(5) },
+            slide.meta.map((html, i) => h(Html, { key: i, html, sx: { ...richTextSx(), ...glassSx(tk), borderRadius: 99, fontSize: tk.cardText, px: '1em', py: '0.45em' } }))),
+          slide.rows.length > 0 && h(FactStrip, { rows: slide.rows, tk }),
+          h(Caption, { html: slide.note, tk }))
       }
 
       function CardsLayout({ slide, tk }) {
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Box, { sx: { display: 'grid', gridTemplateColumns: `repeat(${cardColumns(slide.items.length, tk)}, minmax(0, 1fr))`, gap: `${tk.gap * 0.6}px` } },
-            slide.items.map((item, i) => h(Card, {
-              key: i, variant: 'outlined',
-              sx: { p: `${tk.gap * 0.75}px`, borderRadius: `${tk.radius}px`, borderTop: `${Math.max(3, tk.eyebrow / 5)}px solid ${slide.accent}` },
-            },
-              h(Typography, { sx: { fontSize: tk.cardTitle, fontWeight: 800, letterSpacing: '-0.01em', mb: `${tk.gap * 0.3}px` } }, item.title),
-              h(Html, { html: item.html, sx: (t) => ({ ...richTextSx(t, slide.accent), fontSize: tk.cardText, color: 'text.secondary', lineHeight: 1.6 }) })))),
-          h(Caption, { html: slide.caption, tk, accent: slide.accent }))
+          h(BentoGrid, { count: slide.items.length, tk },
+            slide.items.map((item, i) => h(BentoCell, { key: i, tk, hero: i === 0, index: i },
+              h(Typography, { sx: { fontSize: i === 0 ? tk.cardTitle * 1.2 : tk.cardTitle, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2 } }, item.title),
+              h(Html, { html: item.html, sx: { ...richTextSx(), fontSize: tk.cardText, color: 'text.secondary', lineHeight: 1.6 } })))),
+          h(Caption, { html: slide.caption, tk }))
+      }
+
+      function FactsLayout({ slide, tk }) {
+        return h(Fragment, null, h(SlideHeading, { slide, tk }), h(FactTiles, { rows: slide.rows, tk }), h(Caption, { html: slide.caption, tk }))
       }
 
       function BulletsLayout({ slide, tk }) {
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Stack, { spacing: `${tk.gap * 0.45}px` },
-            slide.items.map((item, i) => h(Stack, { key: i, direction: 'row', spacing: `${tk.gap * 0.4}px`, alignItems: 'flex-start' },
-              h(Box, { sx: {
-                flex: 'none', mt: `${tk.body * 0.2}px`, width: tk.body * 1.15, height: tk.body * 1.15, borderRadius: '50%',
-                bgcolor: slide.accent, color: '#fff', display: 'grid', placeItems: 'center', fontSize: tk.body * 0.6, fontWeight: 800,
-              } }, slide.ordered ? i + 1 : '•'),
-              h(Html, { html: item.html, sx: (t) => ({ ...richTextSx(t, slide.accent), fontSize: tk.body, lineHeight: 1.6 }) })))),
-          h(Caption, { html: slide.caption, tk, accent: slide.accent }))
+          h(Stack, { spacing: 0 },
+            slide.items.map((item, i) => h(Stack, {
+              key: i, direction: 'row', spacing: `${tk.gap * 0.6}px`, alignItems: 'baseline', ...revealProps(i + 3),
+              sx: { py: `${tk.gap * 0.42}px`, borderTop: '1px solid', borderColor: 'divider' },
+            },
+              h(Typography, { sx: { flex: 'none', fontSize: tk.body * 0.9, fontWeight: 800, color: ACCENT, fontVariantNumeric: 'tabular-nums', minWidth: '1.6em' } }, twoDigits(i + 1)),
+              h(Html, { html: item.html, sx: { ...richTextSx(), fontSize: tk.body, lineHeight: 1.55 } })))),
+          h(Caption, { html: slide.caption, tk }))
       }
 
       function TableLayout({ slide, tk }) {
-        const cellSx = { textAlign: 'left', verticalAlign: 'top', px: `${tk.gap * 0.45}px`, py: `${tk.gap * 0.3}px`, borderBottom: 1, borderColor: 'divider' }
+        const cellSx = { textAlign: 'left', verticalAlign: 'top', px: `${tk.gap * 0.5}px`, py: `${tk.gap * 0.34}px`, borderBottom: '1px solid', borderColor: 'divider' }
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Card, { variant: 'outlined', sx: { borderRadius: `${tk.radius}px`, overflowX: 'auto' } },
+          h(Box, { ...revealProps(3), sx: { ...glassSx(tk), overflowX: 'auto' } },
             h(Box, { component: 'table', sx: { width: '100%', borderCollapse: 'collapse', fontSize: tk.table, lineHeight: 1.5 } },
-              h('thead', null, h('tr', null, slide.headers.map((html, i) => h(Html, { key: i, component: 'th', html, sx: { ...cellSx, fontWeight: 700, bgcolor: 'action.hover', whiteSpace: 'nowrap' } })))),
-              h('tbody', null, slide.rows.map((cells, r) => h(Box, { component: 'tr', key: r, sx: { '&:last-of-type td': { borderBottom: 0 } } },
-                cells.map((html, c) => h(Html, { key: c, component: 'td', html, sx: (t) => ({ ...richTextSx(t, slide.accent), ...cellSx, fontWeight: c === 0 ? 700 : 400, minWidth: tk.columns === 1 ? 110 : 'auto' }) }))))))),
-          h(Caption, { html: slide.caption, tk, accent: slide.accent }))
+              h('thead', null, h('tr', null, slide.headers.map((html, i) => h(Html, { key: i, component: 'th', html, sx: { ...cellSx, fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.08em', color: ACCENT, whiteSpace: 'nowrap' } })))),
+              h('tbody', null, slide.rows.map((cells, r) => h(Box, { component: 'tr', key: r, sx: { '&:last-of-type td': { borderBottom: 0 }, '&:hover': { bgcolor: tint(ACCENT, 6) } } },
+                cells.map((html, c) => h(Html, { key: c, component: 'td', html, sx: { ...richTextSx(), ...cellSx, fontWeight: c === 0 ? 700 : 400, color: c === 0 ? 'text.primary' : 'text.secondary', minWidth: tk.bentoColumns === 2 ? 110 : 'auto' } }))))))),
+          h(Caption, { html: slide.caption, tk }))
       }
 
       function CodeLayout({ slide, tk }) {
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Box, { component: 'pre', sx: {
-            m: 0, p: `${tk.gap * 0.7}px`, borderRadius: `${tk.radius}px`, overflowX: 'auto',
-            bgcolor: (t) => (t.palette.mode === 'dark' ? '#0d1117' : '#0f172a'), color: '#e5edff',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: tk.code, lineHeight: 1.6,
-          } }, slide.code),
-          h(Caption, { html: slide.caption, tk, accent: slide.accent }))
+          h(Box, { ...revealProps(3), sx: { ...glassSx(tk), bgcolor: '#07080b', borderColor: tint(ACCENT, 25) } },
+            h(Stack, { direction: 'row', spacing: 1, sx: { px: `${tk.gap * 0.6}px`, pt: `${tk.gap * 0.45}px` } },
+              ['#ff5f57', '#febc2e', '#28c840'].map((color) => h(Box, { key: color, sx: { width: tk.eyebrow * 0.6, height: tk.eyebrow * 0.6, borderRadius: '50%', bgcolor: color } }))),
+            h(Box, { component: 'pre', sx: {
+              m: 0, p: `${tk.gap * 0.6}px`, overflowX: 'auto', color: '#e6edf7',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: tk.code, lineHeight: 1.7,
+            } }, slide.code)),
+          h(Caption, { html: slide.caption, tk }))
       }
 
       function ProseLayout({ slide, tk }) {
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Html, { html: slide.html, sx: (t) => ({ ...richTextSx(t, slide.accent), fontSize: tk.body, lineHeight: 1.7 }) }))
+          h(Html, { html: slide.html, ...revealProps(3), sx: { ...richTextSx(), fontSize: tk.body, lineHeight: 1.7 } }))
       }
 
       const LAYOUTS = {
         chapter: ChapterLayout, cover: CoverLayout, cards: CardsLayout, bullets: BulletsLayout,
-        table: TableLayout, facts: CardsLayoutFromFacts, code: CodeLayout, prose: ProseLayout,
-      }
-
-      function CardsLayoutFromFacts({ slide, tk }) {
-        return h(Fragment, null,
-          h(SlideHeading, { slide, tk }),
-          h(FactTiles, { rows: slide.rows, tk, accent: slide.accent }),
-          h(Caption, { html: slide.caption, tk, accent: slide.accent }))
+        table: TableLayout, facts: FactsLayout, code: CodeLayout, prose: ProseLayout,
       }
 
       function SlideContent({ slide, tk }) {
         return h(LAYOUTS[slide.layout], { slide, tk })
       }
 
-      function slideBackground(slide) {
-        const isHero = slide.layout === 'cover' || slide.layout === 'chapter'
-        return (t) => isHero
-          ? `radial-gradient(70% 90% at 92% 8%, ${slide.accent}33, transparent 60%), ${t.palette.background.paper}`
-          : t.palette.background.paper
+      function isHeroSlide(slide) {
+        return slide.layout === 'cover' || slide.layout === 'chapter'
       }
 
       // ═════════════════════════ 발표 보기 ═════════════════════════
 
-      function StageSlide({ slide, fit }) {
+      function StageSlide({ slide, mode, fit }) {
         const tk = TOKENS.present
         const { boxRef, contentRef } = useFitToBox(fit)
         return h(Box, {
-          ref: boxRef,
-          sx: { width: STAGE.width, height: STAGE.height, p: tk.pad, overflow: 'hidden', background: slideBackground(slide), position: 'relative' },
-        }, h(Box, { ref: contentRef, sx: { transformOrigin: 'top left', height: slide.layout === 'cover' || slide.layout === 'chapter' ? '100%' : 'auto' } },
-          h(SlideContent, { slide, tk })),
-          h(Typography, { sx: { position: 'absolute', left: 128, bottom: 48, fontSize: 22, color: 'text.secondary', fontWeight: 600 } }, `${OWNER}  ·  ${slide.chapterLabel}`))
+          ref: boxRef, style: accentVars(slide.chapterId, mode),
+          sx: { width: STAGE.width, height: STAGE.height, p: tk.pad, overflow: 'hidden', position: 'relative', ...slideBackgroundSx(slide) },
+        },
+          isHeroSlide(slide) && h(Orb, { size: 900, sx: { right: -260, top: -320 } }),
+          h(Box, { ref: contentRef, sx: { position: 'relative', transformOrigin: 'top left' } },
+            h(SlideContent, { slide, tk })),
+          h(Stack, { direction: 'row', justifyContent: 'space-between', sx: { position: 'absolute', left: 136, right: 136, bottom: 44, fontSize: 20, color: 'text.secondary', fontWeight: 600, letterSpacing: '0.04em' } },
+            h('span', null, OWNER),
+            h('span', null, slide.chapterLabel)))
       }
 
       /** 직전 번호와 비교해 넘긴 방향을 구한다 — 다음은 오른쪽에서, 이전은 왼쪽에서 들어온다. */
@@ -752,18 +901,23 @@
         return direction
       }
 
-      function Stage({ slide, index, scale }) {
+      function Stage({ slide, index, scale, mode }) {
         const direction = useSlideDirection(index)
         return h(Box, { sx: { position: 'fixed', inset: 0, display: 'grid', placeItems: 'center', overflow: 'hidden' } },
-          h(Box, { sx: { width: STAGE.width * scale, height: STAGE.height * scale, position: 'relative', borderRadius: `${24 * scale}px`, overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.18)' } },
-            h(Box, {
-              key: index,
-              sx: {
-                width: STAGE.width, height: STAGE.height, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', inset: 0,
-                '@keyframes slideIn': { from: { opacity: 0, translate: `${direction * 12}% 0` }, to: { opacity: 1, translate: '0 0' } },
-                animation: 'slideIn 420ms cubic-bezier(0.22, 1, 0.36, 1)',
-              },
-            }, h(StageSlide, { slide, fit: true }))))
+          h(Box, {
+            sx: {
+              width: STAGE.width * scale, height: STAGE.height * scale, position: 'relative', borderRadius: `${28 * scale}px`, overflow: 'hidden',
+              border: '1px solid', borderColor: 'divider',
+              boxShadow: mode === 'dark' ? '0 40px 120px rgba(0,0,0,0.6)' : '0 30px 80px rgba(15,23,42,0.14)',
+            },
+          }, h(Box, {
+            key: index, className: 'stage-slide',
+            style: { '--from-x': `${direction * 6}%` },
+            sx: {
+              width: STAGE.width, height: STAGE.height, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', inset: 0,
+              animation: 'slideIn 520ms cubic-bezier(0.22, 1, 0.36, 1)',
+            },
+          }, h(StageSlide, { slide, mode, fit: true }))))
       }
 
       function IconAction({ title, onClick, children, ...rest }) {
@@ -771,7 +925,7 @@
       }
 
       function ThemeAction({ mode }) {
-        return h(IconAction, { title: mode === 'dark' ? '밝은 화면' : '어두운 화면', onClick: () => dispatch(actions.modeToggled(mode)) },
+        return h(IconAction, { title: mode === 'dark' ? '밝은 화면' : '어두운 화면', onClick: () => dispatch(actions.modeToggled()) },
           h(mode === 'dark' ? Icons.Light : Icons.Dark, { fontSize: 'small' }))
       }
 
@@ -784,52 +938,62 @@
         return h(IconAction, { title: 'GitHub', component: 'a', ...externalLinkProps(REPO_URL) }, h(Icons.GitHub, { fontSize: 'small' }))
       }
 
-      function PresentControls({ index, total, mode, view }) {
-        return h(Box, { sx: { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 2 } },
-          h(Stack, {
-            direction: 'row', alignItems: 'center', spacing: 0.5,
-            sx: { mx: 'auto', mb: 1.5, width: 'fit-content', px: 1, py: 0.5, borderRadius: 99, bgcolor: 'background.paper', boxShadow: 3, opacity: 0.55, transition: 'opacity .2s', '&:hover, &:focus-within': { opacity: 1 } },
-          },
-            h(IconAction, { title: '목차', onClick: () => dispatch(actions.drawerToggled(true)) }, h(Icons.Menu, { fontSize: 'small' })),
-            h(IconAction, { title: '개요 (Esc)', onClick: () => dispatch(actions.overviewToggled(true)) }, h(Icons.Grid, { fontSize: 'small' })),
-            h(Divider, { orientation: 'vertical', flexItem: true, sx: { mx: 0.5 } }),
-            h(IconAction, { title: '이전 (←)', disabled: index === 0, onClick: () => dispatch(actions.stepped(-1)) }, h(Icons.Prev)),
-            h(Typography, { variant: 'caption', sx: { minWidth: 56, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600 } }, `${index + 1} / ${total}`),
-            h(IconAction, { title: '다음 (→)', disabled: index >= total - 1, onClick: () => dispatch(actions.stepped(1)) }, h(Icons.Next)),
-            h(Divider, { orientation: 'vertical', flexItem: true, sx: { mx: 0.5 } }),
-            h(ViewAction, { view }),
-            h(ThemeAction, { mode }),
-            h(GitHubAction)),
-          h(LinearProgress, { variant: 'determinate', value: total > 1 ? (index / (total - 1)) * 100 : 100, sx: { height: 3 } }))
+      function progressPercent(index, total) {
+        return total > 1 ? (index / (total - 1)) * 100 : 100
       }
 
-      const THUMB_WIDTH = 288
+      function SlideCounter({ index, total }) {
+        return h(Typography, { variant: 'caption', sx: { minWidth: 64, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 700, letterSpacing: '0.04em' } },
+          twoDigits(index + 1), h(Box, { component: 'span', sx: { color: 'text.secondary', fontWeight: 500 } }, ` / ${twoDigits(total)}`))
+      }
 
-      function SlideThumb({ slide, index, active }) {
+      function PresentControls({ slide, index, total, mode }) {
+        return h(Box, { sx: { position: 'fixed', left: 0, right: 0, bottom: 14, zIndex: 2, display: 'flex', justifyContent: 'center', pointerEvents: 'none' } },
+          h(Box, {
+            style: accentVars(slide.chapterId, mode),
+            sx: {
+              pointerEvents: 'auto', ...glassSx(TOKENS.flow), borderRadius: 99, opacity: 0.6, transition: 'opacity .2s',
+              '&:hover, &:focus-within': { opacity: 1 },
+            },
+          },
+            h(Stack, { direction: 'row', alignItems: 'center', spacing: 0.5, sx: { px: 1, py: 0.5 } },
+              h(IconAction, { title: '목차', onClick: () => dispatch(actions.drawerToggled(true)) }, h(Icons.Menu, { fontSize: 'small' })),
+              h(IconAction, { title: '개요 (Esc)', onClick: () => dispatch(actions.overviewToggled(true)) }, h(Icons.Grid, { fontSize: 'small' })),
+              h(Divider, { orientation: 'vertical', flexItem: true, sx: { mx: 0.5 } }),
+              h(IconAction, { title: '이전 (←)', disabled: index === 0, onClick: () => dispatch(actions.stepped(-1)) }, h(Icons.Prev)),
+              h(SlideCounter, { index, total }),
+              h(IconAction, { title: '다음 (→)', disabled: index >= total - 1, onClick: () => dispatch(actions.stepped(1)) }, h(Icons.Next)),
+              h(Divider, { orientation: 'vertical', flexItem: true, sx: { mx: 0.5 } }),
+              h(ViewAction, { view: 'present' }),
+              h(ThemeAction, { mode }),
+              h(GitHubAction)),
+            h(LinearProgress, { variant: 'determinate', value: progressPercent(index, total), sx: { height: 2, bgcolor: 'transparent', '& .MuiLinearProgress-bar': { bgcolor: ACCENT } } })))
+      }
+
+      function SlideThumb({ slide, index, active, mode }) {
         const scale = THUMB_WIDTH / STAGE.width
         return h(Box, {
           component: 'button', type: 'button', onClick: () => dispatch(actions.navigated(index)), 'aria-label': `${index + 1}. ${slide.title}`,
-          sx: {
-            p: 0, border: 0, cursor: 'pointer', bgcolor: 'transparent', textAlign: 'left', color: 'inherit',
-            '&:hover .thumb, &:focus-visible .thumb': { outlineColor: slide.accent },
-          },
+          style: accentVars(slide.chapterId, mode),
+          sx: { p: 0, border: 0, cursor: 'pointer', bgcolor: 'transparent', textAlign: 'left', color: 'inherit', '&:hover .thumb, &:focus-visible .thumb': { outlineColor: ACCENT, transform: 'translateY(-3px)' } },
         },
           h(Box, { className: 'thumb', sx: {
-            width: THUMB_WIDTH, height: STAGE.height * scale, overflow: 'hidden', borderRadius: 2, position: 'relative',
-            outline: '3px solid', outlineColor: active ? slide.accent : 'transparent', outlineOffset: 2, boxShadow: 2,
+            width: THUMB_WIDTH, height: STAGE.height * scale, overflow: 'hidden', borderRadius: 2, position: 'relative', transition: 'transform .2s',
+            outline: '2px solid', outlineColor: active ? ACCENT : 'transparent', outlineOffset: 3, boxShadow: 3,
+            '& .reveal, & .word, & .orb': { animation: 'none' },
           } },
-            h(Box, { sx: { transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' } }, h(StageSlide, { slide, fit: false }))),
-          h(Typography, { variant: 'caption', noWrap: true, component: 'div', sx: { mt: 0.75, width: THUMB_WIDTH, color: 'text.secondary' } }, `${index + 1}. ${slide.title}`))
+            h(Box, { sx: { transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' } }, h(StageSlide, { slide, mode, fit: false }))),
+          h(Typography, { variant: 'caption', noWrap: true, component: 'div', sx: { mt: 0.75, width: THUMB_WIDTH, color: 'text.secondary' } }, `${twoDigits(index + 1)}  ${slide.title}`))
       }
 
-      function Overview({ open, slides, index }) {
-        return h(Dialog, { fullScreen: true, open, onClose: () => dispatch(actions.overviewToggled(false)) },
-          h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, sx: { borderBottom: 1, borderColor: 'divider' } },
+      function Overview({ open, slides, index, mode }) {
+        return h(Dialog, { fullScreen: true, open, onClose: () => dispatch(actions.overviewToggled(false)), PaperProps: { sx: { bgcolor: 'background.default', backgroundImage: 'none' } } },
+          h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, sx: { borderBottom: 1, borderColor: 'divider', bgcolor: 'background.default' } },
             h(Toolbar, { variant: 'dense' },
-              h(Typography, { sx: { flex: 1, fontWeight: 700 } }, '전체 슬라이드'),
+              h(Typography, { sx: { flex: 1, fontWeight: 800, letterSpacing: '-0.01em' } }, '전체 슬라이드'),
               h(IconAction, { title: '닫기 (Esc)', onClick: () => dispatch(actions.overviewToggled(false)) }, h(Icons.Slides, { fontSize: 'small' })))),
-          h(Box, { sx: { p: 3, display: 'grid', gridTemplateColumns: `repeat(auto-fill, ${THUMB_WIDTH}px)`, gap: 3, justifyContent: 'center' } },
-            slides.map((slide, i) => h(SlideThumb, { key: i, slide, index: i, active: i === index }))))
+          h(Box, { sx: { p: 4, display: 'grid', gridTemplateColumns: `repeat(auto-fill, ${THUMB_WIDTH}px)`, gap: 3.5, justifyContent: 'center' } },
+            slides.map((slide, i) => h(SlideThumb, { key: i, slide, index: i, active: i === index, mode }))))
       }
 
       function PresentView({ slides, index, mode }) {
@@ -838,45 +1002,50 @@
         useEffect(listenPresentKeys, [])
         useEffect(() => listenSwipe(rootRef.current), [])
         return h(Box, { ref: rootRef, sx: { position: 'fixed', inset: 0, bgcolor: 'background.default', overflow: 'hidden' } },
-          h(Stage, { slide: slides[index], index, scale }),
-          h(PresentControls, { index, total: slides.length, mode, view: 'present' }))
+          h(Stage, { slide: slides[index], index, scale, mode }),
+          h(PresentControls, { slide: slides[index], index, total: slides.length, mode }))
       }
 
       // ═════════════════════════ 읽기 보기 ═════════════════════════
 
       /** 화면 폭 한 장. 가로로 넘기고, 긴 내용은 카드 안에서 세로로 읽는다. */
-      function FlowCard({ slide, index }) {
+      function FlowCard({ slide, index, mode }) {
         const tk = TOKENS.flow
-        const isHero = slide.layout === 'cover' || slide.layout === 'chapter'
+        const hero = isHeroSlide(slide)
         return h(Box, {
           'data-flow-index': index, component: 'section', 'aria-label': slide.title,
-          sx: { flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', scrollSnapStop: 'always', p: { xs: 1.5, sm: 3 }, overflow: 'hidden' },
-        }, h(Card, {
-          variant: 'outlined',
+          sx: { flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', scrollSnapStop: 'always', p: { xs: 1.25, sm: 3 }, overflow: 'hidden' },
+        }, h(Box, {
+          style: accentVars(slide.chapterId, mode),
           sx: {
-            height: '100%', maxWidth: 760, mx: 'auto', p: tk.pad, borderRadius: `${tk.radius}px`, background: slideBackground(slide),
-            overflowY: 'auto', overscrollBehavior: 'contain', display: isHero ? 'flex' : 'block', flexDirection: 'column', justifyContent: 'center',
+            ...glassSx(tk), ...slideBackgroundSx(slide), height: '100%', maxWidth: 760, mx: 'auto', p: tk.pad,
+            overflowY: 'auto', overscrollBehavior: 'contain', display: hero ? 'flex' : 'block', flexDirection: 'column', justifyContent: 'center',
           },
-        }, h(SlideContent, { slide, tk })))
+        },
+          hero && h(Orb, { size: 320, sx: { right: -120, top: -120 } }),
+          h(Box, { sx: { position: 'relative', height: hero ? '100%' : 'auto' } }, h(SlideContent, { slide, tk }))))
       }
 
-      function FlowPager({ index, total }) {
-        return h(Stack, { direction: 'row', alignItems: 'center', justifyContent: 'center', spacing: 1, sx: { py: 1, pb: 'calc(8px + env(safe-area-inset-bottom))' } },
+      function FlowPager({ slide, index, total, mode }) {
+        return h(Stack, {
+          direction: 'row', alignItems: 'center', justifyContent: 'center', spacing: 1, style: accentVars(slide.chapterId, mode),
+          sx: { py: 0.75, pb: 'calc(8px + env(safe-area-inset-bottom))' },
+        },
           h(IconAction, { title: '이전', disabled: index === 0, onClick: () => stepFlowCard(-1) }, h(Icons.Prev)),
-          h(Typography, { variant: 'caption', sx: { minWidth: 56, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600 } }, `${index + 1} / ${total}`),
+          h(SlideCounter, { index, total }),
           h(IconAction, { title: '다음', disabled: index >= total - 1, onClick: () => stepFlowCard(1) }, h(Icons.Next)))
       }
 
       function FlowHeader({ slide, index, total, mode }) {
-        return h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, sx: { borderBottom: 1, borderColor: 'divider', backdropFilter: 'blur(10px)', bgcolor: 'transparent' } },
+        return h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, style: accentVars(slide.chapterId, mode), sx: { bgcolor: 'transparent', backgroundImage: 'none' } },
           h(Toolbar, { sx: { gap: 1, minHeight: { xs: 52 }, pt: 'env(safe-area-inset-top)' } },
             h(IconAction, { title: '목차', edge: 'start', onClick: () => dispatch(actions.drawerToggled(true)) }, h(Icons.Menu)),
-            h(Typography, { variant: 'subtitle2', noWrap: true, sx: { flex: 1, fontWeight: 700 } },
-              OWNER, h(Box, { component: 'span', sx: { color: 'text.secondary', fontWeight: 500 } }, slide ? '  ·  ' + slide.chapterLabel : '')),
+            h(Typography, { variant: 'subtitle2', noWrap: true, sx: { flex: 1, fontWeight: 800 } },
+              OWNER, h(Box, { component: 'span', sx: { color: ACCENT, fontWeight: 600 } }, '  ·  ' + slide.chapterLabel)),
             h(ViewAction, { view: 'flow' }),
             h(ThemeAction, { mode }),
             h(GitHubAction)),
-          h(LinearProgress, { variant: 'determinate', value: total > 1 ? (index / (total - 1)) * 100 : 100, sx: { height: 2 } }))
+          h(LinearProgress, { variant: 'determinate', value: progressPercent(index, total), sx: { height: 2, mx: 1.5, borderRadius: 2, bgcolor: 'divider', '& .MuiLinearProgress-bar': { bgcolor: ACCENT } } }))
       }
 
       function FlowView({ slides, index, mode }) {
@@ -888,8 +1057,8 @@
           h(Box, {
             id: FLOW_TRACK_ID,
             sx: { flex: 1, minHeight: 0, display: 'flex', overflowX: 'auto', overflowY: 'hidden', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } },
-          }, slides.map((slide, i) => h(FlowCard, { key: i, slide, index: i }))),
-          h(FlowPager, { index, total: slides.length }))
+          }, slides.map((slide, i) => h(FlowCard, { key: i, slide, index: i, mode }))),
+          h(FlowPager, { slide: slides[index], index, total: slides.length, mode }))
       }
 
       // ═════════════════════════ 공통 ═════════════════════════
@@ -906,20 +1075,17 @@
         return slide.layout === 'cover' ? '표지' : [slide.title, slide.page].filter(Boolean).join(' · ')
       }
 
-      function navigateFromOutline(index) {
-        dispatch(actions.navigated(index))
-      }
-
-      function OutlineDrawer({ open, slides, index }) {
-        return h(Drawer, { open, onClose: () => dispatch(actions.drawerToggled(false)) },
+      function OutlineDrawer({ open, slides, index, mode }) {
+        return h(Drawer, { open, onClose: () => dispatch(actions.drawerToggled(false)), PaperProps: { sx: { bgcolor: 'background.default', backgroundImage: 'none' } } },
           h(Box, { sx: { width: { xs: '84vw', sm: 340 }, maxWidth: 360 }, role: 'navigation' },
-            h(Toolbar, null, h(Typography, { variant: 'subtitle1', fontWeight: 700 }, '목차')),
+            h(Toolbar, null, h(Typography, { variant: 'subtitle1', fontWeight: 800 }, '목차')),
             h(Divider),
             groupSlidesByChapter(slides).map(({ doc, items }) => h(List, {
-              key: doc.id, dense: true,
-              subheader: h(ListSubheader, { sx: { fontWeight: 700, lineHeight: '40px', color: doc.accent } }, doc.label),
+              key: doc.id, dense: true, style: accentVars(doc.id, mode),
+              subheader: h(ListSubheader, { sx: { fontWeight: 800, lineHeight: '40px', color: ACCENT, bgcolor: 'background.default', letterSpacing: '0.02em' } }, `${chapterNumber(doc)}  ${doc.label}`),
             }, items.map(({ slide, index: i }) => h(ListItemButton, {
-              key: i, selected: i === index, onClick: () => navigateFromOutline(i), sx: { pl: 3 },
+              key: i, selected: i === index, onClick: () => dispatch(actions.navigated(i)),
+              sx: { pl: 3, '&.Mui-selected': { bgcolor: tint(ACCENT, 14), boxShadow: `inset 3px 0 0 ${ACCENT}` } },
             }, h(ListItemText, { primary: outlineLabel(slide), primaryTypographyProps: { noWrap: true } })))))))
       }
 
@@ -929,11 +1095,12 @@
 
       // ═════════════════════════ 앱 (store 를 읽어 아래로만 내려준다) ═════════════════════════
 
-      function useAppEffects() {
+      function useAppEffects(mode) {
         useEffect(() => { loadSlides() }, [])
         useEffect(persistPreferences, [])
         useEffect(syncHashWithIndex, [])
         useEffect(listenChapterLinks, [])
+        useEffect(() => syncThemeColor(mode), [mode])
       }
 
       function Deck({ slides, index, mode, view }) {
@@ -947,18 +1114,18 @@
         const index = useSelector(selectIndex)
         const overviewOpen = useSelector(selectOverviewOpen)
         const drawerOpen = useSelector(selectDrawerOpen)
-        const mode = useResolvedMode()
+        const mode = useSelector(selectMode)
         const view = useResolvedView()
         const theme = useMemo(() => buildTheme(mode), [mode])
-        useAppEffects()
+        useAppEffects(mode)
 
         return h(ThemeProvider, { theme },
           h(CssBaseline),
           slides
             ? h(Fragment, null,
                 h(Deck, { slides, index, mode, view }),
-                h(OutlineDrawer, { open: drawerOpen, slides, index }),
-                view === 'present' && h(Overview, { open: overviewOpen, slides, index }))
+                h(OutlineDrawer, { open: drawerOpen, slides, index, mode }),
+                view === 'present' && h(Overview, { open: overviewOpen, slides, index, mode }))
             : h(LoadingScreen))
       }
 
