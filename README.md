@@ -1,11 +1,13 @@
 # 이현도 · Frontend Engineer
 
 Vue 3 · TypeScript 기반 웹 프론트엔드 개발자입니다. 교육 서비스의 관리자 화면, 교재 저작 도구,
-수업 플레이어, 공공 추천 시스템 포털을 만들고 운영했습니다. 업무 중에 반복되는 일은 VS Code
-확장과 개발 도구로 직접 만들어 오픈소스로 공개하고 있습니다.
+수업 플레이어, 공공 추천 시스템 포털을 만들고 운영했습니다. Java · Spring 백엔드에서 시작해서,
+지금은 API 계약부터 배포까지 프론트엔드 전 과정을 혼자 맡을 수 있습니다. 업무 중에 반복되는 일은
+VS Code 확장과 개발 도구로 직접 만들어 오픈소스로 공개하고 있습니다.
 
 - GitHub: [@AzuraLight](https://github.com/AzuraLight)
-- 소속: 코드넛 (2026)
+- 경력: 약 3년 — ㈜코드넛 2026.04 ~ 재직 중 · 토피도㈜ 2023.06 ~ 2025.09
+- 문서: [이력서](profile/resume.md) · [자기소개서](profile/cover-letter.md)
 
 > 이 저장소는 포트폴리오 문서만 담고 있습니다. 회사 프로젝트의 소스 코드는 포함하지 않으며,
 > 고객사 내부 정보(주소 · 인프라 · 계정)는 적지 않았습니다.
@@ -27,6 +29,17 @@ Vue 3 · TypeScript 기반 웹 프론트엔드 개발자입니다. 교육 서비
 | 품질 | Vitest, Playwright, Storybook, oxlint · ESLint, commitlint, husky |
 | 배포 | Docker, Kubernetes(NKS), Bitbucket Pipelines, GitLab CI, 온프렘 httpd 패키징 |
 | 도구 개발 | VS Code Extension API, Webview, MCP(Model Context Protocol) |
+| 백엔드 | Java, Spring Boot, Spring WebFlux, MyBatis, MySQL · Oracle · PostgreSQL |
+
+---
+
+## 경력 요약
+
+| 기간 | 회사 | 주요 업무 |
+| --- | --- | --- |
+| 2026.04 ~ 재직 중 | ㈜코드넛 | 교육·공공 고객사 프론트엔드. 티처스 클래스 · HRD-Net 포털 단독 개발, 매쓰캔버스 관리자 주 개발, 해봄 FE 개발 |
+| 2023.06 ~ 2025.09 | 토피도㈜ | 공공·금융 SI. ESB 관리 콘솔 프론트엔드(Vue 3), 농협 세금계산서 프론트엔드·백엔드 보조, 도로공사 데이터 안심구역 백엔드 |
+| 2022.10 ~ 2023.04 | 애드인에듀 (교육) | 자바 풀스택 과정 — [교육 과정 프로젝트 4건](projects/training/README.md) |
 
 ---
 

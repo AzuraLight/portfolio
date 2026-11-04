@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>이현도 · Frontend Engineer</title>
     <meta name="description" content="이현도 · Frontend Engineer 포트폴리오" />
-    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="theme-color" content="#f6f6f4" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
     />
     <style>
-      html, body { margin: 0; height: 100%; background: #0a0b0f; }
+      html, body { margin: 0; height: 100%; background: #f6f6f4; }
+      /* 한국어 조판: 어절 단위로 줄을 바꾸고, 제목은 줄 길이를 고르게 */
+      body { word-break: keep-all; overflow-wrap: anywhere; }
+      h1, h2, h3 { text-wrap: balance; }
       #root:empty::before { content: '불러오는 중…'; display: block; padding: 40px 16px; font-family: sans-serif; color: #888; }
       @keyframes rise { from { opacity: 0; transform: translateY(0.6em); } to { opacity: 1; transform: none; } }
-      @keyframes wordUp { from { opacity: 0; transform: translateY(0.45em) rotate(2deg); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+      @keyframes wordUp { from { opacity: 0; transform: translateY(0.3em); } to { opacity: 1; transform: none; } }
       @keyframes slideIn { from { opacity: 0; translate: var(--from-x, 8%) 0; } to { opacity: 1; translate: 0 0; } }
-      @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-3%, 2%) scale(1.06); } }
-      .reveal { animation: rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
-      .word { display: inline-block; animation: wordUp 760ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+      .reveal { animation: rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 50ms + 80ms); }
+      .word { display: inline-block; animation: wordUp 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 60ms + 60ms); }
       @media (prefers-reduced-motion: reduce) {
-        .reveal, .word, .stage-slide, .orb { animation: none !important; }
+        .reveal, .word, .stage-slide { animation: none !important; }
       }
     </style>
   </head>
@@ -42,15 +44,20 @@
 
       // ═════════════════════════ 설정 ═════════════════════════
 
-      /** 챕터가 될 문서. md 가 원본이고 이 목록은 순서 · 챕터 이름 · 강조색(다크 네온 / 라이트 진한 색)만 정한다. */
+      /** 챕터가 될 문서. md 가 원본이고 이 목록은 순서와 챕터 이름만 정한다. */
       const DOCS = [
-        { id: 'about', label: '소개', path: 'README.md', accent: { dark: '#5b9dff', light: '#1d5fd6' } },
-        { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md', accent: { dark: '#b8f35c', light: '#4d7c0f' } },
-        { id: 'hrd-net-portal', label: 'HRD-Net', path: 'projects/company/hrd-net-portal.md', accent: { dark: '#2ee6d6', light: '#0f766e' } },
-        { id: 'mathcanvas', label: '매쓰캔버스', path: 'projects/company/mathcanvas.md', accent: { dark: '#a98bff', light: '#6d28d9' } },
-        { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md', accent: { dark: '#ffa94d', light: '#c2410c' } },
-        { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md', accent: { dark: '#ff6fb5', light: '#be185d' } },
+        { id: 'about', label: '소개', path: 'README.md' },
+        { id: 'resume', label: '이력서', path: 'profile/resume.md' },
+        { id: 'cover-letter', label: '자기소개서', path: 'profile/cover-letter.md' },
+        { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md' },
+        { id: 'hrd-net-portal', label: 'HRD-Net', path: 'projects/company/hrd-net-portal.md' },
+        { id: 'mathcanvas', label: '매쓰캔버스', path: 'projects/company/mathcanvas.md' },
+        { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md' },
+        { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md' },
+        { id: 'training', label: '교육 과정', path: 'projects/training/README.md' },
       ]
+      /** 강조색은 하나 — 미니멀 화면에서 색은 "여기를 보라"는 신호로만 쓴다. */
+      const ACCENT_COLOR = { light: '#2c4ee6', dark: '#8ea2ff' }
       const ACCENT = 'var(--accent)'
       const REPO_URL = 'https://github.com/AzuraLight/portfolio'
       const OWNER = '이현도'
@@ -58,7 +65,7 @@
       /** 한 장에 담는 최대 개수 — 넘치면 다음 장으로 나눈다 (one idea per slide). */
       const CHUNK = { cards: 6, bullets: 5, rows: 6 }
       const STORAGE_KEY = { mode: 'mode', view: 'view' }
-      const DEFAULT_MODE = 'dark'
+      const DEFAULT_MODE = 'light'
       const KEYS = {
         next: ['ArrowRight', 'ArrowDown', 'PageDown', ' '],
         prev: ['ArrowLeft', 'ArrowUp', 'PageUp'],
@@ -78,13 +85,13 @@
       /** 화면 방식별 글자 크기 · 여백. 발표 보기는 1920 무대 기준 px, 읽기 보기는 기기 px. */
       const TOKENS = {
         present: {
-          pad: `${STAGE_PADDING_Y}px 136px`, gap: 40, eyebrow: 24, coverTitle: 168, title: 92, lead: 36, body: 34,
-          cardTitle: 38, cardText: 25, bigValue: 44, table: 26, code: 25, chapterNo: 420, bentoColumns: 4, radius: 32,
+          pad: `${STAGE_PADDING_Y}px 136px`, gap: 40, eyebrow: 22, coverTitle: 148, title: 80, lead: 36, body: 34,
+          cardTitle: 38, cardText: 25, bigValue: 44, table: 26, code: 25, chapterNo: 300, bentoColumns: 4, radius: 18,
           heroHeight: STAGE_INNER_HEIGHT,
         },
         flow: {
-          pad: '28px 20px', gap: 14, eyebrow: 11, coverTitle: 44, title: 30, lead: 16, body: 16,
-          cardTitle: 17, cardText: 14, bigValue: 18, table: 14, code: 12, chapterNo: 120, bentoColumns: 2, radius: 20,
+          pad: '28px 20px', gap: 14, eyebrow: 11, coverTitle: 40, title: 28, lead: 16, body: 16,
+          cardTitle: 17, cardText: 14, bigValue: 18, table: 14, code: 12, chapterNo: 88, bentoColumns: 2, radius: 12,
           heroHeight: '100%',
         },
       }
@@ -124,9 +131,12 @@
         return Math.max(min, Math.min(max, value))
       }
 
+      /** 최대 size 개씩, 장마다 개수가 고르게 나눈다 — 7개는 6+1 이 아니라 4+3. */
       function chunk(items, size) {
+        const count = Math.max(1, Math.ceil(items.length / size))
+        const per = Math.ceil(items.length / count)
         const chunks = []
-        for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size))
+        for (let i = 0; i < items.length; i += per) chunks.push(items.slice(i, i + per))
         return chunks
       }
 
@@ -146,9 +156,6 @@
         return DOCS.find((d) => d.path === path || d.path === path.replace(/\/$/, '') + '/README.md') ?? null
       }
 
-      function findDocById(id) {
-        return DOCS.find((d) => d.id === id)
-      }
 
       function chapterNumber(doc) {
         return String(DOCS.indexOf(doc)).padStart(2, '0')
@@ -170,14 +177,10 @@
         return KEYS[group].includes(event.key)
       }
 
-      /** `--accent` 같은 색을 투명도와 섞는다 — CSS 변수 색에도 쓸 수 있게 color-mix 를 쓴다. */
-      function tint(color, percent) {
-        return `color-mix(in srgb, ${color} ${percent}%, transparent)`
-      }
 
-      /** 슬라이드 루트에 그 챕터 강조색을 CSS 변수로 건다 — 아래 요소는 ACCENT 로만 쓴다. */
-      function accentVars(chapterId, mode) {
-        return { '--accent': findDocById(chapterId).accent[mode] }
+      /** 슬라이드 루트에 강조색을 CSS 변수로 건다 — 아래 요소는 ACCENT 로만 쓴다. */
+      function accentVars(mode) {
+        return { '--accent': ACCENT_COLOR[mode] }
       }
 
       function revealProps(i) {
@@ -216,11 +219,11 @@
         container.querySelectorAll('hr').forEach((rule) => rule.remove())
       }
 
-      /** 제목 태그마다 묶음을 연다. 첫 제목 앞 노드는 `heading: null` 묶음이 된다. */
-      function groupByHeading(nodes, tagName) {
+      /** 제목 태그(들)마다 묶음을 연다. 첫 제목 앞 노드는 `heading: null` 묶음이 된다. */
+      function groupByHeading(nodes, tagNames) {
         const groups = []
         nodes.forEach((node) => {
-          if (node.tagName === tagName) return groups.push({ heading: node, nodes: [] })
+          if (tagNames.includes(node.tagName)) return groups.push({ heading: node, nodes: [] })
           if (groups.length === 0) groups.push({ heading: null, nodes: [] })
           groups[groups.length - 1].nodes.push(node)
         })
@@ -321,12 +324,26 @@
         return splitIntoBlocks(nodes).flatMap((block) => BLOCK_TO_SLIDES[block.type](block, context))
       }
 
-      /** `##` 묶음: 안에 `###` 가 있으면 그 하나하나가 슬라이드 묶음이 된다. */
+      /** 제목 글에서 링크 글(`— [repo](…)`)과 끝에 남은 구분 기호를 뺀다. */
+      function headingText(heading) {
+        const clone = heading.cloneNode(true)
+        clone.querySelectorAll('a').forEach((anchor) => anchor.remove())
+        return clone.textContent.replace(/[\s—–\-·|]+$/, '').trim()
+      }
+
+      /** 슬라이드 위 작은 글: `####` 는 바로 위 `###` 를, `###` 는 `##` 를 가리킨다. */
+      function subEyebrow(sub, parentTitle, sectionTitle) {
+        return sub.heading.tagName === 'H4' && parentTitle ? parentTitle : sectionTitle
+      }
+
+      /** `##` 묶음: 안의 `###` · `####` 하나하나가 슬라이드 묶음이 된다. */
       function sectionToSlides(section, doc) {
-        const sectionTitle = section.heading.textContent.trim()
-        return groupByHeading(section.nodes, 'H3').flatMap((sub) => {
+        const sectionTitle = headingText(section.heading)
+        let parentTitle = null
+        return groupByHeading(section.nodes, ['H3', 'H4']).flatMap((sub) => {
+          if (sub.heading?.tagName === 'H3') parentTitle = headingText(sub.heading)
           const context = sub.heading
-            ? { doc, eyebrow: sectionTitle, title: sub.heading.textContent.trim() }
+            ? { doc, eyebrow: subEyebrow(sub, parentTitle, sectionTitle), title: headingText(sub.heading) }
             : { doc, eyebrow: doc.label, title: sectionTitle }
           return sub.nodes.length ? blocksToSlides(sub.nodes, context) : []
         })
@@ -362,8 +379,8 @@
         const container = parseMarkdown(markdown)
         rewriteLinks(container, doc.path)
         removeRules(container)
-        const [head, ...sections] = groupByHeading(elementChildren(container), 'H2')
-        const coverGroup = groupByHeading(head.nodes, 'H1').find((g) => g.heading)
+        const [head, ...sections] = groupByHeading(elementChildren(container), ['H2'])
+        const coverGroup = groupByHeading(head.nodes, ['H1']).find((g) => g.heading)
         const intro = doc.id === 'about' ? [] : [chapterSlide(doc)]
         const cover = coverGroup ? [coverSlide(coverGroup, doc)] : []
         return [...intro, ...cover, ...sections.flatMap((section) => sectionToSlides(section, doc))]
@@ -491,7 +508,7 @@
       }
 
       function syncThemeColor(mode) {
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', mode === 'dark' ? '#0a0b0f' : '#f3f4f7')
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', mode === 'dark' ? '#0e0e0f' : '#f6f6f4')
       }
 
       function firstIndexOfChapter(chapterId) {
@@ -577,15 +594,15 @@
       }
 
       const PALETTES = {
-        dark: { background: { default: '#0a0b0f', paper: '#13151c' }, text: { primary: '#f4f6fb', secondary: '#a3abbd' }, divider: 'rgba(255,255,255,0.09)' },
-        light: { background: { default: '#f3f4f7', paper: '#ffffff' }, text: { primary: '#0d1017', secondary: '#525a6b' }, divider: 'rgba(13,16,23,0.09)' },
+        dark: { background: { default: '#0e0e0f', paper: '#151516' }, text: { primary: '#ececec', secondary: '#8f8f93' }, divider: 'rgba(255,255,255,0.08)' },
+        light: { background: { default: '#f6f6f4', paper: '#ffffff' }, text: { primary: '#141414', secondary: '#6e6e73' }, divider: 'rgba(0,0,0,0.08)' },
       }
 
       function buildTheme(mode) {
         return createTheme({
-          palette: { mode, primary: { main: mode === 'dark' ? '#5b9dff' : '#1d5fd6' }, ...PALETTES[mode] },
+          palette: { mode, primary: { main: ACCENT_COLOR[mode] }, ...PALETTES[mode] },
           typography: { fontFamily: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif" },
-          shape: { borderRadius: 14 },
+          shape: { borderRadius: 10 },
         })
       }
 
@@ -631,44 +648,16 @@
         GitHub: createIcon('M12 1.27a11 11 0 0 0-3.48 21.46c.55.09.73-.24.73-.53v-1.85c-3.03.66-3.67-1.46-3.67-1.46-.5-1.26-1.21-1.6-1.21-1.6-1-.68.07-.66.07-.66 1.1.07 1.68 1.13 1.68 1.13.98 1.67 2.56 1.19 3.19.91.1-.71.38-1.19.69-1.46-2.42-.28-4.97-1.21-4.97-5.38 0-1.19.42-2.16 1.12-2.92-.11-.28-.49-1.39.11-2.88 0 0 .92-.29 3 1.12a10.4 10.4 0 0 1 5.5 0c2.08-1.41 3-1.12 3-1.12.6 1.5.22 2.6.11 2.88.7.76 1.12 1.73 1.12 2.92 0 4.18-2.56 5.1-4.99 5.37.39.34.74 1 .74 2.02v3c0 .29.18.63.74.52A11 11 0 0 0 12 1.27'),
       }
 
-      // ═════════════════════════ 표면 (깊이 · 레이어) ═════════════════════════
+      // ═════════════════════════ 표면 (평면 · 가는 선) ═════════════════════════
 
-      /** 유리 패널: 반투명 바탕 + 흐림 + 가는 테두리 + 위쪽 빛 반사. */
-      function glassSx(tk) {
-        return {
-          position: 'relative', borderRadius: `${tk.radius}px`, overflow: 'hidden',
-          bgcolor: (t) => tint(t.palette.background.paper, t.palette.mode === 'dark' ? 62 : 78),
-          backdropFilter: 'blur(18px) saturate(1.2)',
-          border: '1px solid', borderColor: 'divider',
-          boxShadow: (t) => t.palette.mode === 'dark'
-            ? 'inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35)'
-            : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 18px 40px rgba(15,23,42,0.08)',
-        }
+      /** 카드 표면: 흰 바탕 + 가는 테두리. 그림자 · 흐림 · 그라데이션은 쓰지 않는다. */
+      function surfaceSx(tk) {
+        return { position: 'relative', borderRadius: `${tk.radius}px`, overflow: 'hidden', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }
       }
 
-      /** 슬라이드 바탕: 메시 그라데이션 두 겹 + 점 격자. 표지 · 챕터는 빛을 더 크게. */
-      function slideBackgroundSx(slide) {
-        const isHero = slide.layout === 'cover' || slide.layout === 'chapter'
-        return {
-          bgcolor: 'background.default',
-          backgroundImage: (t) => [
-            `radial-gradient(${isHero ? '55% 70%' : '38% 45%'} at 88% 6%, ${tint(ACCENT, isHero ? 34 : 16)}, transparent 70%)`,
-            `radial-gradient(${isHero ? '45% 55%' : '30% 40%'} at 4% 104%, ${tint(ACCENT, isHero ? 18 : 8)}, transparent 70%)`,
-            `radial-gradient(${tint(t.palette.text.primary, t.palette.mode === 'dark' ? 7 : 9)} 1px, transparent 1.4px)`,
-          ].join(', '),
-          backgroundSize: 'auto, auto, 28px 28px',
-        }
-      }
-
-      function Orb({ size, sx }) {
-        return h(Box, {
-          className: 'orb', 'aria-hidden': true,
-          sx: {
-            position: 'absolute', width: size, height: size, borderRadius: '50%', pointerEvents: 'none',
-            background: `conic-gradient(from 210deg, ${tint(ACCENT, 70)}, transparent 40%, ${tint(ACCENT, 35)} 70%, transparent)`,
-            filter: 'blur(60px)', opacity: 0.55, animation: 'drift 14s ease-in-out infinite', ...sx,
-          },
-        })
+      /** 슬라이드 바탕은 단색 하나. */
+      function slideBackgroundSx() {
+        return { bgcolor: 'background.paper' }
       }
 
       // ═════════════════════════ 슬라이드 레이아웃 (데이터 + 토큰을 받아 그리기만 한다) ═════════════════════════
@@ -676,10 +665,10 @@
       function richTextSx() {
         return {
           '& p': { m: 0 }, '& p + p': { mt: 1 },
-          '& a': { color: ACCENT, textDecorationColor: tint(ACCENT, 45), textUnderlineOffset: '0.2em', overflowWrap: 'anywhere' },
+          '& a': { color: 'text.primary', textDecorationColor: ACCENT, textDecorationThickness: '1px', textUnderlineOffset: '0.22em', overflowWrap: 'anywhere', '&:hover': { color: ACCENT } },
           '& strong': { fontWeight: 700, color: 'text.primary' },
-          '& code': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.84em', px: '0.35em', py: '0.05em', borderRadius: '0.35em', bgcolor: tint(ACCENT, 14), color: 'text.primary' },
-          '& ul, & ol': { m: 0, mt: '0.4em', pl: '1.2em' }, '& li + li': { mt: '0.25em' }, '& li::marker': { color: ACCENT },
+          '& code': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.84em', px: '0.35em', py: '0.05em', borderRadius: '0.3em', bgcolor: 'action.hover', color: 'text.primary' },
+          '& ul, & ol': { m: 0, mt: '0.4em', pl: '1.2em' }, '& li + li': { mt: '0.25em' }, '& li::marker': { color: 'text.secondary' },
         }
       }
 
@@ -688,20 +677,16 @@
       }
 
       function Eyebrow({ slide, tk }) {
-        return h(Stack, { direction: 'row', alignItems: 'center', spacing: 1, sx: { mb: `${tk.gap * 0.55}px` }, ...revealProps(0) },
-          h(Box, { component: 'span', sx: {
-            display: 'inline-flex', alignItems: 'center', gap: '0.55em', px: '0.9em', py: '0.4em', borderRadius: 99,
-            fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-            color: ACCENT, bgcolor: tint(ACCENT, 12), border: '1px solid', borderColor: tint(ACCENT, 30),
-          } },
-            h(Box, { component: 'span', sx: { width: '0.5em', height: '0.5em', borderRadius: '50%', bgcolor: ACCENT, boxShadow: `0 0 12px ${ACCENT}` } }),
+        return h(Stack, { direction: 'row', alignItems: 'center', spacing: 1.5, sx: { mb: `${tk.gap * 0.6}px` }, ...revealProps(0) },
+          h(Box, { component: 'span', sx: { width: tk.eyebrow * 1.4, height: '2px', bgcolor: ACCENT } }),
+          h(Box, { component: 'span', sx: { fontSize: tk.eyebrow, fontWeight: 600, letterSpacing: '0.06em', color: 'text.secondary' } },
             [slide.eyebrow, slide.page].filter(Boolean).join('  ·  ')))
       }
 
       function SlideTitle({ slide, tk }) {
         return h(Typography, {
           component: 'h2', ...revealProps(1),
-          sx: { fontSize: tk.title, fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.08, mb: `${tk.gap * 0.7}px`, fontVariationSettings: '"wght" 820' },
+          sx: { fontSize: tk.title, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.12, mb: `${tk.gap * 0.8}px` },
         }, slide.title)
       }
 
@@ -725,16 +710,10 @@
       }
 
       function ChapterLayout({ slide, tk }) {
-        return h(Box, { sx: { height: tk.heroHeight, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' } },
-          h(Typography, {
-            'aria-hidden': true, className: 'reveal',
-            sx: {
-              position: 'absolute', right: '-0.04em', top: '-0.18em', fontSize: tk.chapterNo, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.06em',
-              color: 'transparent', WebkitTextStroke: `${Math.max(1.5, tk.chapterNo / 140)}px ${tint(ACCENT, 70)}`,
-            },
-          }, slide.number),
-          h(Typography, { ...revealProps(1), sx: { fontSize: tk.eyebrow * 1.1, fontWeight: 700, letterSpacing: '0.2em', color: ACCENT, mb: `${tk.gap * 0.3}px` } }, `CHAPTER ${slide.number}`),
-          h(KineticTitle, { text: slide.title, sx: { fontSize: tk.coverTitle, fontWeight: 900, letterSpacing: '-0.045em', lineHeight: 1 } }))
+        return h(Box, { sx: { height: tk.heroHeight, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' } },
+          h(Typography, { ...revealProps(0), sx: { fontSize: tk.chapterNo, fontWeight: 200, lineHeight: 0.9, letterSpacing: '-0.05em', color: ACCENT, fontVariantNumeric: 'tabular-nums' } }, slide.number),
+          h(Box, { ...revealProps(1), sx: { height: '1px', bgcolor: 'divider', my: `${tk.gap * 0.8}px` } }),
+          h(KineticTitle, { text: slide.title, sx: { fontSize: tk.coverTitle * 0.8, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.05 } }))
       }
 
       function BentoGrid({ count, tk, children }) {
@@ -754,12 +733,12 @@
       function BentoCell({ tk, hero, index, children }) {
         return h(Box, {
           sx: {
-            ...glassSx(tk), flex: 1, p: `${tk.gap * (hero ? 0.9 : 0.7)}px`, display: 'flex', flexDirection: 'column',
-            justifyContent: hero ? 'space-between' : 'flex-start', gap: `${tk.gap * 0.25}px`,
-            ...(hero && { background: (t) => `linear-gradient(150deg, ${tint(ACCENT, 24)}, ${tint(t.palette.background.paper, 70)} 70%)`, borderColor: tint(ACCENT, 35) }),
+            ...surfaceSx(tk), flex: 1, p: `${tk.gap * 0.75}px`, display: 'flex', flexDirection: 'column',
+            justifyContent: hero ? 'space-between' : 'flex-start', gap: `${tk.gap * 0.3}px`,
+            bgcolor: hero ? 'background.default' : 'background.paper',
           },
         },
-          h(Typography, { sx: { fontSize: hero ? tk.eyebrow * 2.4 : tk.eyebrow, fontWeight: hero ? 900 : 700, lineHeight: 1, color: ACCENT, fontVariantNumeric: 'tabular-nums', letterSpacing: hero ? '-0.04em' : '0.08em', opacity: hero ? 0.9 : 1 } }, twoDigits(index + 1)),
+          h(Typography, { sx: { fontSize: hero ? tk.eyebrow * 2.2 : tk.eyebrow, fontWeight: hero ? 300 : 600, lineHeight: 1, color: hero ? ACCENT : 'text.secondary', fontVariantNumeric: 'tabular-nums', letterSpacing: hero ? '-0.03em' : '0.04em' } }, twoDigits(index + 1)),
           h(Box, { sx: { display: 'flex', flexDirection: 'column', gap: `${tk.gap * 0.25}px` } }, children))
       }
 
@@ -767,7 +746,7 @@
         return h(BentoGrid, { count: rows.length, tk },
           rows.map(([key, value], i) => h(BentoCell, { key: i, tk, hero: i === 0, index: i },
             h(Html, { html: key, sx: { fontSize: tk.cardText, fontWeight: 600, color: 'text.secondary' } }),
-            h(Html, { html: value, sx: { ...richTextSx(), fontSize: i === 0 ? tk.bigValue : tk.cardTitle * 0.78, fontWeight: i === 0 ? 800 : 600, lineHeight: 1.3, letterSpacing: '-0.015em' } }))))
+            h(Html, { html: value, sx: { ...richTextSx(), fontSize: i === 0 ? tk.bigValue : tk.cardTitle * 0.78, fontWeight: i === 0 ? 700 : 500, lineHeight: 1.35, letterSpacing: '-0.015em' } }))))
       }
 
       /** 표지의 사실 줄: 같은 폭 칸을 나란히 — 위계 없이 한눈에 훑는 정보다. */
@@ -775,12 +754,12 @@
         const columns = Math.min(rows.length, tk.bentoColumns)
         return h(Box, {
           ...revealProps(6),
-          sx: { ...glassSx(tk), display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` },
+          sx: { ...surfaceSx(tk), display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` },
         }, rows.map(([key, value], i) => h(Box, {
           key: i,
           sx: { p: `${tk.gap * 0.6}px`, borderLeft: i % columns === 0 ? 0 : '1px solid', borderTop: i >= columns ? '1px solid' : 0, borderColor: 'divider' },
         },
-          h(Html, { html: key, sx: { fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.1em', color: ACCENT, mb: `${tk.gap * 0.2}px` } }),
+          h(Html, { html: key, sx: { fontSize: tk.eyebrow, fontWeight: 600, letterSpacing: '0.04em', color: 'text.secondary', mb: `${tk.gap * 0.2}px` } }),
           h(Html, { html: value, sx: { ...richTextSx(), fontSize: tk.cardText, lineHeight: 1.5 } }))))
       }
 
@@ -794,13 +773,13 @@
           h(KineticTitle, {
             text: slide.title,
             sx: {
-              fontSize: coverTitleSize(slide.title, tk), fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 1.02, mb: `${tk.gap * 0.9}px`,
-              '& .word:last-of-type': { color: ACCENT },
+              fontSize: coverTitleSize(slide.title, tk), fontWeight: 700, letterSpacing: '-0.045em', lineHeight: 1.06, mb: `${tk.gap}px`,
+              '& .word:last-of-type::after': { content: '"."', color: ACCENT },
             },
           }),
           h(Lead, { html: slide.lead, tk, i: 4 }),
           slide.meta.length > 0 && h(Stack, { direction: 'row', flexWrap: 'wrap', useFlexGap: true, spacing: 1, sx: { mb: `${tk.gap}px` }, ...revealProps(5) },
-            slide.meta.map((html, i) => h(Html, { key: i, html, sx: { ...richTextSx(), ...glassSx(tk), borderRadius: 99, fontSize: tk.cardText, px: '1em', py: '0.45em' } }))),
+            slide.meta.map((html, i) => h(Html, { key: i, html, sx: { ...richTextSx(), fontSize: tk.cardText, color: 'text.secondary', pr: '1.2em', '& + &': { pl: '1.2em', borderLeft: '1px solid', borderColor: 'divider' } } }))),
           slide.rows.length > 0 && h(FactStrip, { rows: slide.rows, tk }),
           h(Caption, { html: slide.note, tk }))
       }
@@ -810,7 +789,7 @@
           h(SlideHeading, { slide, tk }),
           h(BentoGrid, { count: slide.items.length, tk },
             slide.items.map((item, i) => h(BentoCell, { key: i, tk, hero: i === 0, index: i },
-              h(Typography, { sx: { fontSize: i === 0 ? tk.cardTitle * 1.2 : tk.cardTitle, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2 } }, item.title),
+              h(Typography, { sx: { fontSize: i === 0 ? tk.cardTitle * 1.15 : tk.cardTitle, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.25 } }, item.title),
               h(Html, { html: item.html, sx: { ...richTextSx(), fontSize: tk.cardText, color: 'text.secondary', lineHeight: 1.6 } })))),
           h(Caption, { html: slide.caption, tk }))
       }
@@ -827,7 +806,7 @@
               key: i, direction: 'row', spacing: `${tk.gap * 0.6}px`, alignItems: 'baseline', ...revealProps(i + 3),
               sx: { py: `${tk.gap * 0.42}px`, borderTop: '1px solid', borderColor: 'divider' },
             },
-              h(Typography, { sx: { flex: 'none', fontSize: tk.body * 0.9, fontWeight: 800, color: ACCENT, fontVariantNumeric: 'tabular-nums', minWidth: '1.6em' } }, twoDigits(i + 1)),
+              h(Typography, { sx: { flex: 'none', fontSize: tk.body * 0.8, fontWeight: 500, color: 'text.secondary', fontVariantNumeric: 'tabular-nums', minWidth: '2em' } }, twoDigits(i + 1)),
               h(Html, { html: item.html, sx: { ...richTextSx(), fontSize: tk.body, lineHeight: 1.55 } })))),
           h(Caption, { html: slide.caption, tk }))
       }
@@ -836,10 +815,10 @@
         const cellSx = { textAlign: 'left', verticalAlign: 'top', px: `${tk.gap * 0.5}px`, py: `${tk.gap * 0.34}px`, borderBottom: '1px solid', borderColor: 'divider' }
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Box, { ...revealProps(3), sx: { ...glassSx(tk), overflowX: 'auto' } },
+          h(Box, { ...revealProps(3), sx: { ...surfaceSx(tk), overflowX: 'auto' } },
             h(Box, { component: 'table', sx: { width: '100%', borderCollapse: 'collapse', fontSize: tk.table, lineHeight: 1.5 } },
-              h('thead', null, h('tr', null, slide.headers.map((html, i) => h(Html, { key: i, component: 'th', html, sx: { ...cellSx, fontSize: tk.eyebrow, fontWeight: 700, letterSpacing: '0.08em', color: ACCENT, whiteSpace: 'nowrap' } })))),
-              h('tbody', null, slide.rows.map((cells, r) => h(Box, { component: 'tr', key: r, sx: { '&:last-of-type td': { borderBottom: 0 }, '&:hover': { bgcolor: tint(ACCENT, 6) } } },
+              h('thead', null, h('tr', null, slide.headers.map((html, i) => h(Html, { key: i, component: 'th', html, sx: { ...cellSx, fontSize: tk.eyebrow, fontWeight: 600, letterSpacing: '0.04em', color: 'text.secondary', whiteSpace: 'nowrap' } })))),
+              h('tbody', null, slide.rows.map((cells, r) => h(Box, { component: 'tr', key: r, sx: { '&:last-of-type td': { borderBottom: 0 }, '&:hover': { bgcolor: 'action.hover' } } },
                 cells.map((html, c) => h(Html, { key: c, component: 'td', html, sx: { ...richTextSx(), ...cellSx, fontWeight: c === 0 ? 700 : 400, color: c === 0 ? 'text.primary' : 'text.secondary', minWidth: tk.bentoColumns === 2 ? 110 : 'auto' } }))))))),
           h(Caption, { html: slide.caption, tk }))
       }
@@ -847,11 +826,9 @@
       function CodeLayout({ slide, tk }) {
         return h(Fragment, null,
           h(SlideHeading, { slide, tk }),
-          h(Box, { ...revealProps(3), sx: { ...glassSx(tk), bgcolor: '#07080b', borderColor: tint(ACCENT, 25) } },
-            h(Stack, { direction: 'row', spacing: 1, sx: { px: `${tk.gap * 0.6}px`, pt: `${tk.gap * 0.45}px` } },
-              ['#ff5f57', '#febc2e', '#28c840'].map((color) => h(Box, { key: color, sx: { width: tk.eyebrow * 0.6, height: tk.eyebrow * 0.6, borderRadius: '50%', bgcolor: color } }))),
+          h(Box, { ...revealProps(3), sx: { ...surfaceSx(tk), bgcolor: 'background.default' } },
             h(Box, { component: 'pre', sx: {
-              m: 0, p: `${tk.gap * 0.6}px`, overflowX: 'auto', color: '#e6edf7',
+              m: 0, p: `${tk.gap * 0.7}px`, overflowX: 'auto', color: 'text.primary',
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: tk.code, lineHeight: 1.7,
             } }, slide.code)),
           h(Caption, { html: slide.caption, tk }))
@@ -882,10 +859,9 @@
         const tk = TOKENS.present
         const { boxRef, contentRef } = useFitToBox(fit)
         return h(Box, {
-          ref: boxRef, style: accentVars(slide.chapterId, mode),
-          sx: { width: STAGE.width, height: STAGE.height, p: tk.pad, overflow: 'hidden', position: 'relative', ...slideBackgroundSx(slide) },
+          ref: boxRef, style: accentVars(mode),
+          sx: { width: STAGE.width, height: STAGE.height, p: tk.pad, overflow: 'hidden', position: 'relative', ...slideBackgroundSx() },
         },
-          isHeroSlide(slide) && h(Orb, { size: 900, sx: { right: -260, top: -320 } }),
           h(Box, { ref: contentRef, sx: { position: 'relative', transformOrigin: 'top left' } },
             h(SlideContent, { slide, tk })),
           h(Stack, { direction: 'row', justifyContent: 'space-between', sx: { position: 'absolute', left: 136, right: 136, bottom: 44, fontSize: 20, color: 'text.secondary', fontWeight: 600, letterSpacing: '0.04em' } },
@@ -908,7 +884,7 @@
             sx: {
               width: STAGE.width * scale, height: STAGE.height * scale, position: 'relative', borderRadius: `${28 * scale}px`, overflow: 'hidden',
               border: '1px solid', borderColor: 'divider',
-              boxShadow: mode === 'dark' ? '0 40px 120px rgba(0,0,0,0.6)' : '0 30px 80px rgba(15,23,42,0.14)',
+              boxShadow: mode === 'dark' ? '0 1px 0 rgba(255,255,255,0.04)' : '0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.05)',
             },
           }, h(Box, {
             key: index, className: 'stage-slide',
@@ -950,9 +926,9 @@
       function PresentControls({ slide, index, total, mode }) {
         return h(Box, { sx: { position: 'fixed', left: 0, right: 0, bottom: 14, zIndex: 2, display: 'flex', justifyContent: 'center', pointerEvents: 'none' } },
           h(Box, {
-            style: accentVars(slide.chapterId, mode),
+            style: accentVars(mode),
             sx: {
-              pointerEvents: 'auto', ...glassSx(TOKENS.flow), borderRadius: 99, opacity: 0.6, transition: 'opacity .2s',
+              pointerEvents: 'auto', ...surfaceSx(TOKENS.flow), borderRadius: 99, opacity: 0.6, transition: 'opacity .2s',
               '&:hover, &:focus-within': { opacity: 1 },
             },
           },
@@ -974,12 +950,12 @@
         const scale = THUMB_WIDTH / STAGE.width
         return h(Box, {
           component: 'button', type: 'button', onClick: () => dispatch(actions.navigated(index)), 'aria-label': `${index + 1}. ${slide.title}`,
-          style: accentVars(slide.chapterId, mode),
+          style: accentVars(mode),
           sx: { p: 0, border: 0, cursor: 'pointer', bgcolor: 'transparent', textAlign: 'left', color: 'inherit', '&:hover .thumb, &:focus-visible .thumb': { outlineColor: ACCENT, transform: 'translateY(-3px)' } },
         },
           h(Box, { className: 'thumb', sx: {
             width: THUMB_WIDTH, height: STAGE.height * scale, overflow: 'hidden', borderRadius: 2, position: 'relative', transition: 'transform .2s',
-            outline: '2px solid', outlineColor: active ? ACCENT : 'transparent', outlineOffset: 3, boxShadow: 3,
+            outline: '2px solid', outlineColor: active ? ACCENT : 'transparent', outlineOffset: 3, border: '1px solid', borderColor: 'divider',
             '& .reveal, & .word, & .orb': { animation: 'none' },
           } },
             h(Box, { sx: { transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' } }, h(StageSlide, { slide, mode, fit: false }))),
@@ -1016,19 +992,18 @@
           'data-flow-index': index, component: 'section', 'aria-label': slide.title,
           sx: { flex: '0 0 100%', height: '100%', scrollSnapAlign: 'start', scrollSnapStop: 'always', p: { xs: 1.25, sm: 3 }, overflow: 'hidden' },
         }, h(Box, {
-          style: accentVars(slide.chapterId, mode),
+          style: accentVars(mode),
           sx: {
-            ...glassSx(tk), ...slideBackgroundSx(slide), height: '100%', maxWidth: 760, mx: 'auto', p: tk.pad,
+            ...surfaceSx(tk), ...slideBackgroundSx(), height: '100%', maxWidth: 760, mx: 'auto', p: tk.pad,
             overflowY: 'auto', overscrollBehavior: 'contain', display: hero ? 'flex' : 'block', flexDirection: 'column', justifyContent: 'center',
           },
         },
-          hero && h(Orb, { size: 320, sx: { right: -120, top: -120 } }),
           h(Box, { sx: { position: 'relative', height: hero ? '100%' : 'auto' } }, h(SlideContent, { slide, tk }))))
       }
 
       function FlowPager({ slide, index, total, mode }) {
         return h(Stack, {
-          direction: 'row', alignItems: 'center', justifyContent: 'center', spacing: 1, style: accentVars(slide.chapterId, mode),
+          direction: 'row', alignItems: 'center', justifyContent: 'center', spacing: 1, style: accentVars(mode),
           sx: { py: 0.75, pb: 'calc(8px + env(safe-area-inset-bottom))' },
         },
           h(IconAction, { title: '이전', disabled: index === 0, onClick: () => stepFlowCard(-1) }, h(Icons.Prev)),
@@ -1037,7 +1012,7 @@
       }
 
       function FlowHeader({ slide, index, total, mode }) {
-        return h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, style: accentVars(slide.chapterId, mode), sx: { bgcolor: 'transparent', backgroundImage: 'none' } },
+        return h(AppBar, { position: 'sticky', color: 'inherit', elevation: 0, style: accentVars(mode), sx: { bgcolor: 'transparent', backgroundImage: 'none' } },
           h(Toolbar, { sx: { gap: 1, minHeight: { xs: 52 }, pt: 'env(safe-area-inset-top)' } },
             h(IconAction, { title: '목차', edge: 'start', onClick: () => dispatch(actions.drawerToggled(true)) }, h(Icons.Menu)),
             h(Typography, { variant: 'subtitle2', noWrap: true, sx: { flex: 1, fontWeight: 800 } },
@@ -1076,16 +1051,16 @@
       }
 
       function OutlineDrawer({ open, slides, index, mode }) {
-        return h(Drawer, { open, onClose: () => dispatch(actions.drawerToggled(false)), PaperProps: { sx: { bgcolor: 'background.default', backgroundImage: 'none' } } },
+        return h(Drawer, { open, onClose: () => dispatch(actions.drawerToggled(false)), PaperProps: { sx: { bgcolor: 'background.paper', backgroundImage: 'none' } } },
           h(Box, { sx: { width: { xs: '84vw', sm: 340 }, maxWidth: 360 }, role: 'navigation' },
             h(Toolbar, null, h(Typography, { variant: 'subtitle1', fontWeight: 800 }, '목차')),
             h(Divider),
             groupSlidesByChapter(slides).map(({ doc, items }) => h(List, {
-              key: doc.id, dense: true, style: accentVars(doc.id, mode),
-              subheader: h(ListSubheader, { sx: { fontWeight: 800, lineHeight: '40px', color: ACCENT, bgcolor: 'background.default', letterSpacing: '0.02em' } }, `${chapterNumber(doc)}  ${doc.label}`),
+              key: doc.id, dense: true, style: accentVars(mode),
+              subheader: h(ListSubheader, { sx: { fontWeight: 600, lineHeight: '40px', color: 'text.secondary', bgcolor: 'background.paper', letterSpacing: '0.02em' } }, `${chapterNumber(doc)}  ${doc.label}`),
             }, items.map(({ slide, index: i }) => h(ListItemButton, {
               key: i, selected: i === index, onClick: () => dispatch(actions.navigated(i)),
-              sx: { pl: 3, '&.Mui-selected': { bgcolor: tint(ACCENT, 14), boxShadow: `inset 3px 0 0 ${ACCENT}` } },
+              sx: { pl: 3, '&.Mui-selected': { bgcolor: 'action.selected', boxShadow: `inset 2px 0 0 ${ACCENT}` } },
             }, h(ListItemText, { primary: outlineLabel(slide), primaryTypographyProps: { noWrap: true } })))))))
       }
 
