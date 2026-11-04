@@ -579,6 +579,23 @@
         document.querySelector(`[data-flow-index="${index}"]`)?.scrollIntoView({ inline: 'start', block: 'nearest', behavior })
       }
 
+      /**
+       * 이웃한 카드로는 부드럽게, 멀리는 바로 이동한다.
+       * 부드럽게 멀리 가면 지나가는 카드마다 현재 위치로 보고되어, 그 보고가 다시 스크롤을 끌어당겨 중간에 멈춘다.
+       */
+      function scrollBehaviorFor(fromIndex, toIndex) {
+        return Math.abs(toIndex - fromIndex) > 1 ? 'auto' : 'smooth'
+      }
+
+      /** store 의 현재 번호가 바뀌면 그 카드로 스크롤한다 — 직전 번호와의 거리로 이동 방식을 고른다. */
+      function useScrollToFlowCard(index) {
+        const previous = useRef(index)
+        useEffect(() => {
+          scrollFlowCardIntoView(index, scrollBehaviorFor(previous.current, index))
+          previous.current = index
+        }, [index])
+      }
+
       function stepFlowCard(delta) {
         const { index, slides } = store.getState()
         scrollFlowCardIntoView(clamp(index + delta, 0, slides.length - 1), 'smooth')
@@ -1025,7 +1042,7 @@
 
       function FlowView({ slides, index, mode }) {
         useEffect(() => { scrollFlowCardIntoView(store.getState().index) }, [])
-        useEffect(() => { scrollFlowCardIntoView(index, 'smooth') }, [index])
+        useScrollToFlowCard(index)
         useEffect(observeFlowCards, [])
         return h(Box, { sx: { height: '100svh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' } },
           h(FlowHeader, { slide: slides[index], index, total: slides.length, mode }),
