@@ -2,89 +2,37 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>이현도 · Frontend Engineer</title>
     <meta name="description" content="이현도 · Frontend Engineer 포트폴리오" />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
     />
     <style>
-      :root {
-        --bg: #ffffff;
-        --fg: #1c2024;
-        --muted: #5b6570;
-        --line: #e3e7eb;
-        --soft: #f6f8fa;
-        --accent: #2563eb;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #14171a;
-          --fg: #e8ecef;
-          --muted: #9aa5b1;
-          --line: #2b3138;
-          --soft: #1b1f24;
-          --accent: #7aa2f7;
-        }
-      }
-      * { box-sizing: border-box; }
-      html { scroll-behavior: smooth; scroll-padding-top: 64px; }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--fg);
-        font: 15px/1.75 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
-      }
-      nav.top {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background: color-mix(in srgb, var(--bg) 88%, transparent);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid var(--line);
-      }
-      nav.top .in {
-        max-width: 880px;
-        margin: 0 auto;
-        padding: 12px 16px;
-        display: flex;
-        gap: 18px;
-        overflow-x: auto;
-        white-space: nowrap;
-        font-size: 14px;
-      }
-      nav.top a { color: var(--muted); text-decoration: none; }
-      nav.top a:hover { color: var(--accent); }
-      main { max-width: 880px; margin: 0 auto; padding: 40px 16px 96px; }
-      section + section { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
-      h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 12px; }
-      h2 { font-size: 21px; margin: 40px 0 12px; letter-spacing: -0.01em; }
-      h3 { font-size: 17px; margin: 28px 0 8px; }
-      section > h1:first-child { margin-top: 0; }
-      a { color: var(--accent); }
-      blockquote { margin: 16px 0; padding: 4px 16px; border-left: 3px solid var(--accent); background: var(--soft); color: var(--muted); border-radius: 0 6px 6px 0; }
-      code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
-      pre { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
-      pre code { background: none; border: 0; padding: 0; }
-      .table { overflow-x: auto; }
-      table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
-      th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
-      th { background: var(--soft); font-weight: 600; }
-      hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
-      .loading { color: var(--muted); }
-      footer { max-width: 880px; margin: 0 auto; padding: 0 16px 48px; color: var(--muted); font-size: 13px; }
+      html, body { margin: 0; height: 100%; overflow: hidden; }
+      #root:empty::before { content: '불러오는 중…'; display: block; padding: 40px 16px; font-family: sans-serif; color: #888; }
     </style>
   </head>
   <body>
-    <nav class="top"><div class="in" id="nav"></div></nav>
-    <main id="content"><p class="loading">불러오는 중…</p></main>
-    <footer>이 페이지는 저장소의 마크다운 문서를 그대로 읽어 그립니다 · <a href="https://github.com/AzuraLight/portfolio">source</a></footer>
+    <div id="root"></div>
 
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@mui/material@5.15.20/umd/material-ui.production.min.js" crossorigin></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
     <script>
-      // 페이지에 이어 붙일 문서 — md 가 원본이고 이 목록은 순서만 정한다.
+      'use strict'
+      const { createElement: h, Fragment, useEffect, useMemo, useSyncExternalStore } = React
+      const {
+        AppBar, Box, Chip, CircularProgress, CssBaseline, Divider, Drawer, Fab, Fade, IconButton,
+        LinearProgress, List, ListItemButton, ListItemText, ListSubheader, Stack, SvgIcon,
+        ThemeProvider, Toolbar, Tooltip, Typography, createTheme, responsiveFontSizes, useMediaQuery,
+      } = MaterialUI
+
+      // ───────────────────────── 설정 ─────────────────────────
+
+      /** 챕터가 될 문서. md 가 원본이고 이 목록은 순서와 챕터 이름만 정한다. */
       const DOCS = [
         { id: 'about', label: '소개', path: 'README.md' },
         { id: 'teachers-class', label: '티처스 클래스', path: 'projects/company/teachers-class.md' },
@@ -93,49 +41,495 @@
         { id: 'haebom', label: '해봄', path: 'projects/company/haebom.md' },
         { id: 'personal', label: '개인 프로젝트', path: 'projects/personal/README.md' },
       ]
-      const idByPath = Object.fromEntries(DOCS.map((d) => [d.path, d.id]))
+      const REPO_URL = 'https://github.com/AzuraLight/portfolio'
+      const MODE_STORAGE_KEY = 'mode'
+      const NEXT_KEYS = ['ArrowRight', 'PageDown', ' ']
+      const PREV_KEYS = ['ArrowLeft', 'PageUp']
+      const SLIDE_ROOT_ID = 'deck'
 
-      /** 문서 사이 상대 링크(…/x.md)를 같은 페이지의 섹션 링크로 바꾼다. */
-      function rewriteLinks(root, basePath) {
-        const base = new URL(basePath, 'https://x/')
-        root.querySelectorAll('a[href]').forEach((a) => {
-          const href = a.getAttribute('href')
-          if (/^[a-z]+:/i.test(href) || href.startsWith('#')) {
-            if (/^https?:/i.test(href)) a.target = '_blank'
-            return
-          }
-          const path = new URL(href, base).pathname.slice(1)
-          const target = idByPath[path] ?? idByPath[path.replace(/\/$/, '') + '/README.md']
-          a.setAttribute('href', target ? '#' + target : 'https://github.com/AzuraLight/portfolio/tree/main/' + path)
-        })
-        root.querySelectorAll('table').forEach((t) => {
-          const wrap = document.createElement('div')
-          wrap.className = 'table'
-          t.replaceWith(wrap)
-          wrap.append(t)
+      // ───────────────────────── helper ─────────────────────────
+
+      function readStorage(key) {
+        try { return localStorage.getItem(key) } catch { return null }
+      }
+
+      function writeStorage(key, value) {
+        try { localStorage.setItem(key, value) } catch {}
+      }
+
+      function createIcon(pathData) {
+        return function Icon(props) { return h(SvgIcon, props, h('path', { d: pathData })) }
+      }
+
+      function externalLinkProps(href) {
+        return { href, target: '_blank', rel: 'noopener' }
+      }
+
+      function slideElementId(index) {
+        return 'slide-' + index
+      }
+
+      function clampIndex(index, length) {
+        return Math.max(0, Math.min(length - 1, index))
+      }
+
+      function resolveRelativePath(href, basePath) {
+        return new URL(href, new URL(basePath, 'https://x/')).pathname.slice(1)
+      }
+
+      function findDocByPath(path) {
+        return DOCS.find((d) => d.path === path || d.path === path.replace(/\/$/, '') + '/README.md') ?? null
+      }
+
+      function isTypingTarget(element) {
+        return Boolean(element?.closest?.('input, textarea, [contenteditable="true"]'))
+      }
+
+      // ───────────────────────── markdown → 슬라이드 ─────────────────────────
+
+      function parseMarkdown(markdown) {
+        const container = document.createElement('div')
+        container.innerHTML = marked.parse(markdown)
+        return container
+      }
+
+      /** 문서 사이 상대 링크(…/x.md)는 그 챕터 첫 슬라이드로, 그 밖의 상대 경로는 저장소 링크로 바꾼다. */
+      function rewriteLinks(container, basePath) {
+        container.querySelectorAll('a[href]').forEach((anchor) => {
+          const href = anchor.getAttribute('href')
+          if (/^https?:/i.test(href)) return Object.assign(anchor, { target: '_blank', rel: 'noopener' })
+          if (/^[a-z]+:/i.test(href) || href.startsWith('#')) return
+          const path = resolveRelativePath(href, basePath)
+          const doc = findDocByPath(path)
+          anchor.setAttribute('href', doc ? '#chapter-' + doc.id : `${REPO_URL}/tree/main/${path}`)
         })
       }
 
-      async function render() {
-        const nav = document.getElementById('nav')
-        const content = document.getElementById('content')
-        const texts = await Promise.all(
-          DOCS.map((d) => fetch(d.path).then((r) => (r.ok ? r.text() : `> ${d.path} 를 불러오지 못했습니다.`))),
+      function wrapTablesForScroll(container) {
+        container.querySelectorAll('table').forEach((table) => {
+          const wrapper = document.createElement('div')
+          wrapper.className = 'md-table'
+          table.replaceWith(wrapper)
+          wrapper.append(table)
+        })
+      }
+
+      function removeRules(container) {
+        container.querySelectorAll('hr').forEach((rule) => rule.remove())
+      }
+
+      function nodesToHtml(nodes) {
+        const box = document.createElement('div')
+        nodes.forEach((node) => box.append(node))
+        return box.innerHTML
+      }
+
+      /** `#`·`##` 제목마다 새 슬라이드를 연다. 제목 앞까지가 그 슬라이드의 본문이다. */
+      function splitIntoSlides(container, doc) {
+        const groups = []
+        Array.from(container.childNodes).forEach((node) => {
+          const startsSlide = node.nodeName === 'H1' || node.nodeName === 'H2'
+          if (startsSlide || groups.length === 0) groups.push({ isCover: node.nodeName === 'H1', title: node.textContent, nodes: [] })
+          groups[groups.length - 1].nodes.push(node)
+        })
+        return groups.map((group) => ({
+          chapterId: doc.id,
+          chapterLabel: doc.label,
+          isCover: group.isCover,
+          title: group.title.trim(),
+          html: nodesToHtml(group.nodes),
+        }))
+      }
+
+      function markdownToSlides(markdown, doc) {
+        const container = parseMarkdown(markdown)
+        rewriteLinks(container, doc.path)
+        wrapTablesForScroll(container)
+        removeRules(container)
+        return splitIntoSlides(container, doc)
+      }
+
+      // ───────────────────────── 미니 store (Redux 방식) ─────────────────────────
+      // view → dispatch(action) → reducer → state → view. 상태를 바꾸는 길은 reducer 하나뿐이다.
+
+      const ActionType = {
+        SlidesLoaded: 'deck/slidesLoaded',
+        SlideEntered: 'deck/slideEntered',
+        DrawerOpened: 'nav/drawerOpened',
+        DrawerClosed: 'nav/drawerClosed',
+        ModeToggled: 'theme/modeToggled',
+      }
+
+      const actions = {
+        slidesLoaded: (slides) => ({ type: ActionType.SlidesLoaded, payload: slides }),
+        slideEntered: (index) => ({ type: ActionType.SlideEntered, payload: index }),
+        drawerOpened: () => ({ type: ActionType.DrawerOpened }),
+        drawerClosed: () => ({ type: ActionType.DrawerClosed }),
+        modeToggled: (systemMode) => ({ type: ActionType.ModeToggled, payload: systemMode }),
+      }
+
+      const initialState = {
+        slides: null,
+        currentIndex: 0,
+        drawerOpen: false,
+        mode: readStorage(MODE_STORAGE_KEY),
+      }
+
+      function reducer(state, action) {
+        switch (action.type) {
+          case ActionType.SlidesLoaded:
+            return { ...state, slides: action.payload }
+          case ActionType.SlideEntered:
+            return { ...state, currentIndex: action.payload }
+          case ActionType.DrawerOpened:
+            return { ...state, drawerOpen: true }
+          case ActionType.DrawerClosed:
+            return { ...state, drawerOpen: false }
+          case ActionType.ModeToggled:
+            return { ...state, mode: (state.mode ?? action.payload) === 'dark' ? 'light' : 'dark' }
+          default:
+            return state
+        }
+      }
+
+      function createStore(reduce, preloadedState) {
+        let state = preloadedState
+        const listeners = new Set()
+        return {
+          getState: () => state,
+          dispatch(action) {
+            state = reduce(state, action)
+            listeners.forEach((listener) => listener())
+          },
+          subscribe(listener) {
+            listeners.add(listener)
+            return () => listeners.delete(listener)
+          },
+        }
+      }
+
+      const store = createStore(reducer, initialState)
+
+      function useSelector(selector) {
+        return useSyncExternalStore(store.subscribe, () => selector(store.getState()))
+      }
+
+      const selectSlides = (state) => state.slides
+      const selectCurrentIndex = (state) => state.currentIndex
+      const selectDrawerOpen = (state) => state.drawerOpen
+      const selectMode = (state) => state.mode
+
+      // ───────────────────────── 부수효과 (결과는 action 으로만 store 에 넣는다) ─────────────────────────
+
+      function fetchMarkdown(path) {
+        const failure = `> ${path} 를 불러오지 못했습니다.`
+        return fetch(path).then((res) => (res.ok ? res.text() : failure)).catch(() => failure)
+      }
+
+      async function loadSlides() {
+        const chapters = await Promise.all(DOCS.map(async (doc) => markdownToSlides(await fetchMarkdown(doc.path), doc)))
+        store.dispatch(actions.slidesLoaded(chapters.flat()))
+      }
+
+      /** 화면 가운데에 온 슬라이드를 store 에 알린다 — 현재 위치의 유일한 출처. */
+      function observeSlides() {
+        const observer = new IntersectionObserver(
+          (entries) => entries.filter((e) => e.isIntersecting)
+            .forEach((e) => store.dispatch(actions.slideEntered(Number(e.target.dataset.index)))),
+          { root: document.getElementById(SLIDE_ROOT_ID), threshold: 0.55 },
         )
-        content.replaceChildren()
-        DOCS.forEach((d, i) => {
-          const section = document.createElement('section')
-          section.id = d.id
-          section.innerHTML = marked.parse(texts[i])
-          rewriteLinks(section, d.path)
-          content.append(section)
-          const link = document.createElement('a')
-          link.href = '#' + d.id
-          link.textContent = d.label
-          nav.append(link)
-        })
-        if (location.hash) document.querySelector(location.hash)?.scrollIntoView()
+        document.querySelectorAll('[data-index]').forEach((el) => observer.observe(el))
+        return () => observer.disconnect()
       }
-      render()
+
+      function persistMode() {
+        return store.subscribe(() => {
+          const { mode } = store.getState()
+          if (mode) writeStorage(MODE_STORAGE_KEY, mode)
+        })
+      }
+
+      function scrollToSlide(index) {
+        document.getElementById(slideElementId(index))?.scrollIntoView({ behavior: 'smooth' })
+      }
+
+      function goToSlide(index) {
+        const { slides } = store.getState()
+        if (!slides) return
+        store.dispatch(actions.drawerClosed())
+        scrollToSlide(clampIndex(index, slides.length))
+      }
+
+      function stepSlide(delta) {
+        goToSlide(store.getState().currentIndex + delta)
+      }
+
+      function firstSlideIndexOfChapter(chapterId) {
+        return store.getState().slides?.findIndex((slide) => slide.chapterId === chapterId) ?? -1
+      }
+
+      function goToChapter(chapterId) {
+        const index = firstSlideIndexOfChapter(chapterId)
+        if (index >= 0) goToSlide(index)
+      }
+
+      function handleDeckKeydown(event) {
+        if (isTypingTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return
+        if (NEXT_KEYS.includes(event.key)) { event.preventDefault(); stepSlide(1) }
+        if (PREV_KEYS.includes(event.key)) { event.preventDefault(); stepSlide(-1) }
+      }
+
+      function listenDeckKeys() {
+        window.addEventListener('keydown', handleDeckKeydown)
+        return () => window.removeEventListener('keydown', handleDeckKeydown)
+      }
+
+      /** 본문 안의 챕터 링크(#chapter-…)를 가로채 그 챕터로 넘긴다. */
+      function handleChapterLinkClick(event) {
+        const anchor = event.target.closest?.('a[href^="#chapter-"]')
+        if (!anchor) return
+        event.preventDefault()
+        goToChapter(anchor.getAttribute('href').slice('#chapter-'.length))
+      }
+
+      function listenChapterLinks() {
+        document.addEventListener('click', handleChapterLinkClick)
+        return () => document.removeEventListener('click', handleChapterLinkClick)
+      }
+
+      function syncHashWithSlide() {
+        return store.subscribe(() => {
+          const { slides, currentIndex } = store.getState()
+          const slide = slides?.[currentIndex]
+          if (slide) history.replaceState(null, '', '#' + slideElementId(currentIndex))
+        })
+      }
+
+      function jumpToInitialHash() {
+        const index = Number(location.hash.replace('#slide-', ''))
+        if (Number.isInteger(index) && index > 0) document.getElementById(slideElementId(index))?.scrollIntoView()
+      }
+
+      // ───────────────────────── 테마 ─────────────────────────
+
+      function useResolvedMode() {
+        const storedMode = useSelector(selectMode)
+        const systemMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light'
+        return { mode: storedMode ?? systemMode, systemMode }
+      }
+
+      function buildTheme(mode) {
+        return responsiveFontSizes(createTheme({
+          palette: {
+            mode,
+            primary: { main: mode === 'dark' ? '#90caf9' : '#1976d2' },
+            background: mode === 'dark' ? { default: '#0f1216', paper: '#161a20' } : { default: '#f5f7fa', paper: '#ffffff' },
+          },
+          typography: { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif" },
+          shape: { borderRadius: 16 },
+        }))
+      }
+
+      /** marked 결과물에 MUI 타이포그래피와 팔레트를 입힌다 (본문 슬라이드). */
+      function buildSlideBodySx(theme) {
+        return {
+          '& h2': { ...theme.typography.h3, fontWeight: 800, letterSpacing: '-0.02em', mt: 0, mb: { xs: 2, md: 4 } },
+          '& h3': { ...theme.typography.h6, fontWeight: 700, mt: 3, mb: 1 },
+          '& p, & li': { ...theme.typography.body1, fontSize: { xs: '1rem', md: '1.125rem' }, lineHeight: 1.75 },
+          '& ul, & ol': { pl: { xs: 2.5, md: 3 }, my: 1.5 },
+          '& li + li': { mt: 0.75 },
+          '& li::marker': { color: theme.palette.primary.main },
+          '& strong': { color: 'text.primary' },
+          '& a': { color: 'primary.main', textUnderlineOffset: 3, overflowWrap: 'anywhere' },
+          '& blockquote': {
+            m: 0, my: 2, px: 2.5, py: 1, borderLeft: 4, borderColor: 'primary.main',
+            bgcolor: 'action.hover', borderRadius: '0 12px 12px 0', color: 'text.secondary',
+          },
+          '& code': {
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.86em',
+            px: 0.6, py: 0.1, borderRadius: 1, bgcolor: 'action.selected',
+          },
+          '& pre': {
+            p: { xs: 1.5, md: 2.5 }, borderRadius: 3, overflowX: 'auto', bgcolor: 'action.hover',
+            border: 1, borderColor: 'divider', fontSize: { xs: 12, md: 14 }, lineHeight: 1.6,
+          },
+          '& pre code': { p: 0, bgcolor: 'transparent', fontSize: 'inherit' },
+          '& .md-table': { overflowX: 'auto', my: 2, border: 1, borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper' },
+          '& table': { width: '100%', borderCollapse: 'collapse', ...theme.typography.body2, fontSize: { xs: 13, md: 15 } },
+          '& th, & td': {
+            textAlign: 'left', verticalAlign: 'top', px: { xs: 1.25, md: 2 }, py: { xs: 1, md: 1.5 },
+            borderBottom: 1, borderColor: 'divider', minWidth: { xs: 96, sm: 'auto' },
+          },
+          '& tr:last-of-type td': { borderBottom: 0 },
+          '& th': { fontWeight: 600, bgcolor: 'action.hover', whiteSpace: 'nowrap' },
+        }
+      }
+
+      /** 표지 슬라이드: 제목을 크게, 첫 단락을 리드로, 표는 요약 카드처럼. */
+      function buildCoverSx(theme) {
+        return {
+          ...buildSlideBodySx(theme),
+          '& h1': {
+            ...theme.typography.h2, fontWeight: 800, letterSpacing: '-0.03em', mt: 0, mb: { xs: 2, md: 3 },
+            background: `linear-gradient(90deg, ${theme.palette.text.primary}, ${theme.palette.primary.main})`,
+            WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+          },
+          '& h1 + p, & h1 + blockquote': { fontSize: { xs: '1.05rem', md: '1.35rem' }, color: 'text.secondary', maxWidth: 880 },
+        }
+      }
+
+      // ───────────────────────── 아이콘 (Material Icons 경로) ─────────────────────────
+
+      const MenuIcon = createIcon('M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z')
+      const PrevIcon = createIcon('M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z')
+      const NextIcon = createIcon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
+      const DarkModeIcon = createIcon('M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z')
+      const LightModeIcon = createIcon('M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM2 13h2a1 1 0 0 0 0-2H2a1 1 0 0 0 0 2zm18 0h2a1 1 0 0 0 0-2h-2a1 1 0 0 0 0 2zM11 2v2a1 1 0 0 0 2 0V2a1 1 0 0 0-2 0zm0 18v2a1 1 0 0 0 2 0v-2a1 1 0 0 0-2 0zM5.99 4.58a1 1 0 0 0-1.41 1.41l1.06 1.06a1 1 0 0 0 1.41-1.41L5.99 4.58zm12.37 12.37a1 1 0 0 0-1.41 1.41l1.06 1.06a1 1 0 0 0 1.41-1.41l-1.06-1.06zm1.06-10.96a1 1 0 0 0-1.41-1.41l-1.06 1.06a1 1 0 0 0 1.41 1.41l1.06-1.06zM7.05 18.36a1 1 0 0 0-1.41-1.41l-1.06 1.06a1 1 0 0 0 1.41 1.41l1.06-1.06z')
+      const GitHubIcon = createIcon('M12 1.27a11 11 0 0 0-3.48 21.46c.55.09.73-.24.73-.53v-1.85c-3.03.66-3.67-1.46-3.67-1.46-.5-1.26-1.21-1.6-1.21-1.6-1-.68.07-.66.07-.66 1.1.07 1.68 1.13 1.68 1.13.98 1.67 2.56 1.19 3.19.91.1-.71.38-1.19.69-1.46-2.42-.28-4.97-1.21-4.97-5.38 0-1.19.42-2.16 1.12-2.92-.11-.28-.49-1.39.11-2.88 0 0 .92-.29 3 1.12a10.4 10.4 0 0 1 5.5 0c2.08-1.41 3-1.12 3-1.12.6 1.5.22 2.6.11 2.88.7.76 1.12 1.73 1.12 2.92 0 4.18-2.56 5.1-4.99 5.37.39.34.74 1 .74 2.02v3c0 .29.18.63.74.52A11 11 0 0 0 12 1.27')
+
+      // ───────────────────────── 컴포넌트 (props 로 받고 action 으로만 알린다) ─────────────────────────
+
+      function IconAction({ title, onClick, children, ...rest }) {
+        return h(Tooltip, { title }, h(IconButton, { 'aria-label': title, onClick, ...rest }, children))
+      }
+
+      function DeckProgress({ currentIndex, total }) {
+        const value = total > 1 ? (currentIndex / (total - 1)) * 100 : 0
+        return h(LinearProgress, { variant: 'determinate', value, sx: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3 } })
+      }
+
+      function ChapterTitle({ slide }) {
+        return h(Typography, { variant: 'subtitle2', noWrap: true, sx: { fontWeight: 700, minWidth: 0 } },
+          '이현도', h(Box, { component: 'span', sx: { color: 'text.secondary', fontWeight: 500 } }, slide ? '  ·  ' + slide.chapterLabel : ''))
+      }
+
+      function DeckHeader({ slide, currentIndex, total, mode, systemMode }) {
+        const isDark = mode === 'dark'
+        return h(AppBar, {
+          position: 'fixed', color: 'inherit', elevation: 0,
+          sx: { bgcolor: 'transparent', backdropFilter: 'blur(10px)', borderBottom: 1, borderColor: 'divider' },
+        },
+          h(Toolbar, { variant: 'dense', sx: { gap: 1, minHeight: { xs: 52, md: 56 }, pt: 'env(safe-area-inset-top)' } },
+            h(IconAction, { title: '목차', edge: 'start', onClick: () => store.dispatch(actions.drawerOpened()) }, h(MenuIcon)),
+            h(ChapterTitle, { slide }),
+            h(Box, { sx: { flex: 1 } }),
+            h(Typography, { variant: 'caption', color: 'text.secondary', sx: { fontVariantNumeric: 'tabular-nums', mr: 0.5 } },
+              total ? `${currentIndex + 1} / ${total}` : ''),
+            h(IconAction, { title: isDark ? '밝은 화면' : '어두운 화면', onClick: () => store.dispatch(actions.modeToggled(systemMode)) },
+              h(isDark ? LightModeIcon : DarkModeIcon)),
+            h(IconAction, { title: 'GitHub', edge: 'end', component: 'a', ...externalLinkProps(REPO_URL) }, h(GitHubIcon))),
+          h(DeckProgress, { currentIndex, total }))
+      }
+
+      function groupSlidesByChapter(slides) {
+        return DOCS.map((doc) => ({
+          doc,
+          items: slides.map((slide, index) => ({ slide, index })).filter(({ slide }) => slide.chapterId === doc.id),
+        }))
+      }
+
+      function OutlineDrawer({ open, slides, currentIndex }) {
+        const groups = slides ? groupSlidesByChapter(slides) : []
+        return h(Drawer, { open, onClose: () => store.dispatch(actions.drawerClosed()) },
+          h(Box, { sx: { width: { xs: '82vw', sm: 320 }, maxWidth: 360 }, role: 'navigation' },
+            h(Toolbar, null, h(Typography, { variant: 'subtitle1', fontWeight: 700 }, '목차')),
+            h(Divider),
+            groups.map(({ doc, items }) => h(List, {
+              key: doc.id, dense: true,
+              subheader: h(ListSubheader, { sx: { fontWeight: 700, lineHeight: '40px' } }, doc.label),
+            }, items.map(({ slide, index }) => h(ListItemButton, {
+              key: index, selected: index === currentIndex, onClick: () => goToSlide(index), sx: { pl: 3 },
+            }, h(ListItemText, { primary: slide.isCover ? '개요' : slide.title, primaryTypographyProps: { noWrap: true } })))))))
+      }
+
+      function SlideBody({ slide, sx }) {
+        return h(Box, { sx, dangerouslySetInnerHTML: { __html: slide.html } })
+      }
+
+      function Slide({ slide, index, isActive, coverSx, bodySx }) {
+        return h(Box, {
+          id: slideElementId(index), 'data-index': index, component: 'section', 'aria-label': slide.title,
+          sx: {
+            height: '100dvh', scrollSnapAlign: 'start', scrollSnapStop: 'always',
+            display: 'flex', alignItems: slide.isCover ? 'center' : 'flex-start',
+            pt: { xs: '68px', md: '88px' }, pb: { xs: '84px', md: '96px' }, px: { xs: 2.5, sm: 5, md: 10 },
+            overflowY: 'auto', overscrollBehavior: 'contain',
+            background: slide.isCover
+              ? (t) => `radial-gradient(1200px 600px at 85% 15%, ${t.palette.primary.main}22, transparent 60%)`
+              : 'none',
+          },
+        }, h(Fade, { in: isActive, timeout: 600 },
+          h(Box, { sx: { width: '100%', maxWidth: 1080, mx: 'auto', my: 'auto' } },
+            h(Chip, { label: slide.chapterLabel, size: 'small', color: 'primary', variant: 'outlined', sx: { mb: { xs: 2, md: 3 }, fontWeight: 600 } }),
+            h(SlideBody, { slide, sx: slide.isCover ? coverSx : bodySx }))))
+      }
+
+      function DeckNavButtons({ currentIndex, total }) {
+        const fabSx = { boxShadow: 2 }
+        return h(Stack, {
+          direction: 'row', spacing: 1.5,
+          sx: { position: 'fixed', right: { xs: 16, md: 32 }, bottom: { xs: 'calc(16px + env(safe-area-inset-bottom))', md: 32 }, zIndex: 1 },
+        },
+          h(Fab, { size: 'medium', color: 'default', 'aria-label': '이전 슬라이드', disabled: currentIndex === 0, onClick: () => stepSlide(-1), sx: fabSx }, h(PrevIcon)),
+          h(Fab, { size: 'medium', color: 'primary', 'aria-label': '다음 슬라이드', disabled: currentIndex >= total - 1, onClick: () => stepSlide(1), sx: fabSx }, h(NextIcon)))
+      }
+
+      function KeyHint() {
+        return h(Typography, {
+          variant: 'caption', color: 'text.secondary',
+          sx: { position: 'fixed', left: 32, bottom: 40, display: { xs: 'none', md: 'block' } },
+        }, '← → 또는 Space 로 넘기기')
+      }
+
+      function LoadingScreen() {
+        return h(Box, { sx: { height: '100dvh', display: 'grid', placeItems: 'center' } }, h(CircularProgress))
+      }
+
+      function Deck({ slides, currentIndex, coverSx, bodySx }) {
+        return h(Box, {
+          id: SLIDE_ROOT_ID,
+          sx: { height: '100dvh', overflowY: 'auto', scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' },
+        }, slides.map((slide, index) => h(Slide, {
+          key: index, slide, index, isActive: index === currentIndex, coverSx, bodySx,
+        })))
+      }
+
+      // ───────────────────────── 앱 (store 를 읽어 아래로만 내려준다) ─────────────────────────
+
+      function useDeckEffects(slidesReady) {
+        useEffect(() => { loadSlides() }, [])
+        useEffect(persistMode, [])
+        useEffect(listenDeckKeys, [])
+        useEffect(listenChapterLinks, [])
+        useEffect(() => (slidesReady ? observeSlides() : undefined), [slidesReady])
+        useEffect(() => (slidesReady ? syncHashWithSlide() : undefined), [slidesReady])
+        useEffect(() => { if (slidesReady) jumpToInitialHash() }, [slidesReady])
+      }
+
+      function App() {
+        const slides = useSelector(selectSlides)
+        const currentIndex = useSelector(selectCurrentIndex)
+        const drawerOpen = useSelector(selectDrawerOpen)
+        const { mode, systemMode } = useResolvedMode()
+        const theme = useMemo(() => buildTheme(mode), [mode])
+        const coverSx = useMemo(() => buildCoverSx(theme), [theme])
+        const bodySx = useMemo(() => buildSlideBodySx(theme), [theme])
+        useDeckEffects(Boolean(slides))
+
+        const total = slides?.length ?? 0
+        return h(ThemeProvider, { theme },
+          h(CssBaseline),
+          h(DeckHeader, { slide: slides?.[currentIndex], currentIndex, total, mode, systemMode }),
+          h(OutlineDrawer, { open: drawerOpen, slides, currentIndex }),
+          slides
+            ? h(Fragment, null,
+                h(Deck, { slides, currentIndex, coverSx, bodySx }),
+                h(DeckNavButtons, { currentIndex, total }),
+                h(KeyHint))
+            : h(LoadingScreen))
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(h(App))
     </script>
   </body>
+</html>
