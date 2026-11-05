@@ -10,11 +10,13 @@
 | 경력 | 약 3년 — ㈜코드넛 재직 중, 토피도㈜ 2년 4개월 |
 | GitHub | [github.com/AzuraLight](https://github.com/AzuraLight) |
 | 포트폴리오 | [azuralight.github.io/portfolio](https://azuralight.github.io/portfolio/) |
+| 이력서 PDF | [resume.pdf](https://azuralight.github.io/portfolio/profile/resume.pdf) |
 
 ## 소개
 
 - 교재 에디터, 수업 플레이어, 공공 추천 시스템 포털, 관리자 CMS 등 **업무용 웹 애플리케이션** 개발
 - 최근 7개월간 고객사 프로젝트 4건 중 2건의 **프론트엔드 단독 개발** (설계 · 구현 · 테스트 · 배포)
+- **AI 코딩 에이전트를 실무에 도입**하고, 판정 · 기록을 에이전트 밖 기계 규칙으로 옮긴 작업 체계([agent-guardrails](https://github.com/AzuraLight/agent-guardrails))를 직접 설계해 운영 — 속도는 AI 로, 검증과 결정은 사람과 기계 기록으로
 - OpenAPI 타입 생성, 경계 테스트, ADR 로 **계약과 결정을 코드와 문서로 고정**하는 방식 선호
 - Java · Spring 백엔드 경험을 바탕으로 백엔드 개발자와 API 설계부터 함께 논의
 - 반복 업무를 VS Code 확장 · CLI · MCP 서버로 만들어 **오픈소스 공개** (Gitline, BindB, tourcast 등)
