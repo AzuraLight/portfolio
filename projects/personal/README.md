@@ -3,6 +3,11 @@
 업무에서 반복된 불편을 해결하려고 만든 도구들입니다. 대부분 MIT 라이선스이고, 계정이나
 텔레메트리 없이 동작하도록 만들었습니다.
 
+## AI 에이전트 작업 체계
+
+### agent-guardrails — [repo](https://github.com/AzuraLight/agent-guardrails)
+AI 코딩 에이전트를 실무 저장소에서 안전하게 쓰기 위한 기록 · 감사 · 정책 도구 8종입니다. 자세한 내용은 [케이스 스터디](agent-guardrails.md)에 있습니다.
+
 ## VS Code 확장
 
 ### Gitline — [repo](https://github.com/AzuraLight/gitline)
