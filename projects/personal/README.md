@@ -11,13 +11,25 @@ AI 코딩 에이전트를 실무 저장소에서 안전하게 쓰기 위한 기�
 ## VS Code 확장
 
 ### Gitline — [repo](https://github.com/AzuraLight/gitline)
-GitLens 의 대안으로 만든 커밋 그래프 확장입니다. 하단 패널에 Git 그래프를 띄웁니다. 현재 v1.2.0 입니다.
+GitLens 의 대안으로 만든 커밋 그래프 확장입니다. 하단 패널에 Git 그래프를 띄웁니다. 현재 v1.3.0 이고, Open VSX 에서 2,600회 넘게 내려받았습니다.
+
+![Gitline 커밋 그래프](https://raw.githubusercontent.com/AzuraLight/gitline/main/docs/images/graph-tour.gif)
+
 - SVG 레인 그래프(브랜치별 색, 베지어 병합선)와 HEAD · 로컬 · 원격 · 태그 칩
-- 가상 스크롤로 큰 저장소에서도 빠르게 동작합니다. `.git` 을 감시해서 자동으로 새로고침합니다.
+- 가상 스크롤과 200개 단위 페이징으로 큰 저장소에서도 빠르게 동작합니다. `.git` 을 감시해서 자동으로 새로고침합니다.
 - 작성자·메시지·SHA 검색, 파일 단위 이력(이름 변경 추적), 클릭 한 번으로 파일 diff
+- 변경 파일 트리 보기(폴더 압축 · 폴더별 변경 수 · 키보드 조작)와 현재 줄 인라인 blame(옵트인)
 - 멀티 저장소 선택, Pull / Push / Fetch, ahead·behind 배지, force-with-lease
 - 작업 중 변경과 stash 를 그래프 안에 함께 표시합니다. 영어·한국어 지원
-- 기술: TypeScript · VS Code Webview · Git CLI
+
+**운영 방식** — 사용자 이슈를 받아 릴리스 단위로 처리합니다.
+- 1.2.1: 버그만 모아 먼저 냈습니다. 한글 파일명 깨짐(NUL 구분 출력으로 해결), 200커밋 제한, SHA 검색, 이름 변경 통계, 루트 커밋 리베이스
+- 1.3.0: 요청 이슈 3건(파일 트리 · 인라인 blame · README 시연 GIF)을 반영하고 닫았습니다
+- 1,500줄짜리 인라인 웹뷰 스크립트를 10개 모듈로, 2,181줄 CSS 를 컴포넌트별 9개 파일로 나눴습니다. 화면 12장을 전후로 비교해 픽셀 단위로 같음을 확인했고, 쓰지 않는 선택자 73개를 지웠습니다
+- 단위 33건 · 통합 6건 테스트를 Linux · macOS · Windows CI 에서 돌립니다. 통합 테스트는 실제 VS Code 에서 에디터에 표시된 blame 문구까지 확인합니다
+- 태그를 올리면 테스트 → VSIX 빌드 → GitHub 릴리스(노트 · 체크섬) → Open VSX 게시까지 자동으로 진행됩니다
+- README GIF 는 [tourcast](https://github.com/AzuraLight/tourcast) 로 실제 웹뷰를 녹화해, UI 가 바뀌면 다시 만들 수 있습니다
+- 기술: TypeScript · VS Code Webview · Git CLI · Mocha · @vscode/test-cli · GitHub Actions
 
 ### BindB — [repo](https://github.com/AzuraLight/bindb)
 VS Code 안에서 쓰는 Database IDE 입니다. PostgreSQL · MySQL/MariaDB · SQLite · H2 를 지원합니다.

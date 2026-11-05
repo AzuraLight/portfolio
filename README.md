@@ -57,7 +57,7 @@ Vue 3 · TypeScript 기반 웹 프론트엔드 개발자입니다. 교육 서비
 | 프로젝트 | 무엇 | 링크 |
 | --- | --- | --- |
 | **agent-guardrails** | AI 코딩 에이전트 작업 기록 · 감사 · 정책 도구 8종 (시험 70건 · CI) — [케이스 스터디](projects/personal/agent-guardrails.md) | [repo](https://github.com/AzuraLight/agent-guardrails) |
-| **Gitline** | VS Code 하단 패널용 Git 커밋 그래프 (v1.2.0) | [repo](https://github.com/AzuraLight/gitline) |
+| **Gitline** | VS Code 하단 패널용 Git 커밋 그래프 (v1.3.0 · Open VSX 다운로드 2,600+) | [repo](https://github.com/AzuraLight/gitline) |
 | **BindB** | VS Code 안의 Database IDE: PostgreSQL · MySQL · SQLite · H2 | [repo](https://github.com/AzuraLight/bindb) |
 | **tourcast** | YAML 시나리오로 웹 앱 시연 영상을 자동 녹화하는 CLI (Demo-as-Code) | [repo](https://github.com/AzuraLight/tourcast) |
 | **OpenAPI Explorer** | 에디터 안에서 Swagger/OpenAPI 를 탐색 · 검색 · 호출하는 확장 | [repo](https://github.com/AzuraLight/openapi-explorer) |

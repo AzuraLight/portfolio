@@ -109,7 +109,7 @@ AI 훈련 추천 시스템의 백오피스와 학습자 진단 · 추천 화면
 | 프로젝트 | 내용 | 링크 |
 | --- | --- | --- |
 | agent-guardrails | AI 코딩 에이전트(Claude Code) 기록 · 감사 · 정책 도구 8종 — 자기 승인 · 우회 차단, 시험 70건 · CI | [repo](https://github.com/AzuraLight/agent-guardrails) |
-| Gitline | VS Code 커밋 그래프 확장 (v1.2.0) — SVG 레인 그래프, 가상 스크롤, 멀티 저장소 | [repo](https://github.com/AzuraLight/gitline) |
+| Gitline | VS Code 커밋 그래프 확장 (v1.3.0, 다운로드 2,600+) — 이슈 기반 릴리스, 3-OS CI · 태그 자동 배포 | [repo](https://github.com/AzuraLight/gitline) |
 | BindB | VS Code Database IDE — 4종 DB, 스키마 기반 자동완성, 스트리밍 결과 그리드 | [repo](https://github.com/AzuraLight/bindb) |
 | tourcast | YAML 시나리오로 웹 앱 시연 영상을 자동 녹화하는 CLI (Python · Playwright) | [repo](https://github.com/AzuraLight/tourcast) |
 | OpenAPI Explorer | 에디터 안에서 Swagger 탐색 · 호출, TS 타입 · 호출 코드 생성 | [repo](https://github.com/AzuraLight/openapi-explorer) |
